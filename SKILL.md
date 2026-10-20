@@ -45,7 +45,7 @@ python "<skill-dir>/scripts/sync_from_project.py"
 | 风格、情绪、色调、配色与构图 | [visual-style.md](references/visual-style.md) | 有剧情直接推导视觉方案；没有依据才问预期观感，不使用导演姓名路由 |
 | 表演意图、角色动作、对白语气与提示词包 | [performance-compiler.md](references/performance-compiler.md) | 从剧情编译可见表演、语音参数、逐拍时序、正负向约束，运行本地检查并单列语义/视频验收 |
 | 分镜对应的首帧白模预演 | [first-frame-previz.md](references/first-frame-previz.md) | 默认每个逻辑镜头一张Codex生图白模起幅，主角可用稳定身份色区分，并回填镜号关联 |
-| 一键分镜脚本、运镜与打光设计 | [visual-style.md](references/visual-style.md)、[director.md](references/director.md) 与 [lighting.md](references/lighting.md) | 六项视觉参数包、专业分镜双表与逐镜首帧白模预演一起交付 |
+| 一键分镜脚本、运镜与打光设计 | [visual-style.md](references/visual-style.md)、[director.md](references/director.md) 与 [lighting.md](references/lighting.md) | 六项视觉参数包、专业分镜、逐镜完整提示词表和首帧白模预演一起交付 |
 | 完整分镜与视频制作 | 下文导演链，按步骤读参考文件 | 保留镜头选择、首帧和真实尾帧接力规则 |
 
 Updream 的最小写入流程：检查连接与真实 tabId → 为本聊天/任务 open_workspace → claim_canvas → 读节点完整草稿 → 带 workspaceId 写入并核对 → release_canvas / close_workspace。同一 MCP 进程中的多个聊天也分别创建工作区；不同项目并行，同项目跨标签保持排他认领。只有只读检查时无需新建工作区。未授权的真实生成不会因初始化插件而自动提交。
@@ -108,6 +108,10 @@ Updream 的最小写入流程：检查连接与真实 tabId → 为本聊天/任
 7. **片段接力**：每次选出视频后定位实际剪辑出点、提取尾帧并检查，按 `continue/reangle/cut/reset` 制作下一输入。依赖实际尾帧的片段顺序执行；可先并行准备剧本、空间和独立设定图。
 8. **剪辑与验收**：按完整逻辑镜头/场次回放，检查信息揭示、动作、机位、速度、焦点、明暗层次、世界光向、视线、身份、声音与前后接点。去掉重复接帧但不破坏动作时序；不以单段漂亮代替整段连贯。
 
+## 逐镜提示词直接展示
+
+专业分镜的每个镜号都必须有可复制的完整提示词正文，按白模生图、正式首帧、视频动作、对白/声音与负向约束分类型列入脚本表格；可拆窄表，不只给链接、摘要、变量占位、“同上”或一个镜头示例。不适用项与缺失的模型/资产说明原因；continue不重画起帧。已执行的生图原词与新规划/修订版分别标记，具体要求见 [generation.md](references/generation.md#每镜完整提示词必须入表)。
+
 ## 内置本地工具
 
 `scripts/frame_bridge.py` 使用现有 FFmpeg 精确提取显示顺序尾帧，并记录来源文件和图像指纹。Python 标准库即可；FFmpeg 可由 `--ffmpeg`、`FFMPEG_BINARY`、PATH 或已安装的 `imageio_ffmpeg` 提供，不会自动安装或调用网络。
@@ -143,6 +147,7 @@ python -X utf8 "<skill-dir>/scripts/validate_performance.py" "<project>/directio
 - 每镜正文能说明叙事变化、起落构图、运动或固定的选择、焦点与打光结果；不以焦距数字、运镜术语或“电影光”代替设计。复杂运镜有可观察的收益。
 - 表演执行文本已去掉抽象心理词，台词逐字保留；线索确实可见，动作/语气/时序能读懂。自动检查、语义审读和实际成片验收分开记录，负向与音频字段符合实际工具。
 - 镜头与生成片段区分清楚；超长镜头没有被强制切机位。
+- 各镜/片段的完整提示词已在表格中逐项展示，正文、原文台词、参考职责及版本/执行状态与分镜和选图对应；未用“同上”或单镜示范代替全表。
 - 专业分镜有对应镜号/版本的单幅首帧白模图和实际目视记录；起幅没有偷换成揭示后的落幅，身份色未写回正式配色。缺图或未验证项如实标明。
 - 接力图来自实际选中版本和实际出点；`continue` 不重新绘制首帧；`reangle` 只改变机位，不无故重置动作。
 - 关键道具持物手、视线、空间朝向、服装、光线连续；镜像和二维裁剪不能冒充新机位。

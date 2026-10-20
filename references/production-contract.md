@@ -35,6 +35,8 @@ project/
 
 首帧白模预演：按shot_id/script_version关联frame_role=start、source_kind=codex_imagegen_blockout、版本化文件与指纹、原始提示/参考职责、角色身份色映射、实际目视检查及缺陷/未验证项。规划首帧、正式外观首帧与实际视频尾帧分别标记，身份色不改正式配色；字段见 [first-frame-previz.md](first-frame-previz.md)。
 
+提示词记录：按shot_id/segment_id、type、version关联完整正文、实际参考输入及职责、对应图片/视频版本和planned/submitted/generated等真实状态；原始调用文本保留，不被后来改写覆盖。脚本提示词表同步展示同一版本完整正文，不能只链接此记录；编辑词注明输入目标，重建词与实际调用词分开。
+
 生成片段：所属镜头、segment ID、逻辑镜头内时间区间、首帧、引导片、生成路线与实际模型、提示文件、任务状态、视频版本与指纹、实际保留范围、选中版本、检查结果。
 
 交接：源 segment/版本/指纹、真实尾帧和提取凭据、`continue/reangle/cut/reset`、状态清单、新机位构图来源、目标首帧与视频、依赖项、检查状态。
