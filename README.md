@@ -75,6 +75,7 @@ python "<来源技能目录>/scripts/sync_from_project.py" --project-root "<保�
 | [视觉风格](references/visual-style.md) | 从剧情推导风格与情绪；构图、色调、配色、材质及六项参数包 |
 | [导演设计](references/director.md) | 专业分镜、逐镜完整提示词表、景别、机位、运镜和剪辑理由 |
 | [高级镜头语言库](references/camera-language.md) | 16类机位、对焦与时间语言，完整提示词、复合镜头入表及质检/回退 |
+| [六类电影感转场](references/transitions.md) | 动作/遮挡/形状/甩接/闪白/屏幕揭示，前后完整词、切点/合成与验收 |
 | [表演提示词编译器](references/performance-compiler.md) | 逐拍表演、语音、正负向约束、结构化JSON与本地校验器 |
 | [逐镜首帧白模](references/first-frame-previz.md) | Codex内置生图、角色身份色、起幅审图与镜号关联 |
 | [完整分镜示例](references/storyboard-example.md) | 同镜号的叙事、视觉、预演与逐镜完整提示词 |

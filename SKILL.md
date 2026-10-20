@@ -44,6 +44,7 @@ python "<skill-dir>/scripts/sync_from_project.py"
 | 虚拟角色库、网站确认或未覆盖设置 | [updream-ui.md](references/updream-ui.md) | 必要的浏览器补充；不绕过其他工作区认领 |
 | 风格、情绪、色调、配色与构图 | [visual-style.md](references/visual-style.md) | 有剧情直接推导视觉方案；没有依据才问预期观感，不使用导演姓名路由 |
 | 高级运镜、对焦与时间语言 | [camera-language.md](references/camera-language.md) | 甩镜、主观移动、整周/上升环绕、移焦、变速推进、拉远揭示、前景擦过、慢动作等；按剧情选型，展开路径/焦点/时间及回退 |
+| 动作匹配、遮挡、形状、甩接、闪白与屏幕拉远转场 | [transitions.md](references/transitions.md) | 从剧情选机制，展开前后完整提示词、实际切点/合成、参考职责与分项验收；不把视觉呼应当时空连续 |
 | 表演意图、角色动作、对白语气与提示词包 | [performance-compiler.md](references/performance-compiler.md) | 从剧情编译可见表演、语音参数、逐拍时序、正负向约束，运行本地检查并单列语义/视频验收 |
 | 分镜对应的首帧白模预演 | [first-frame-previz.md](references/first-frame-previz.md) | 默认每个逻辑镜头一张Codex生图白模起幅，主角可用稳定身份色区分，并回填镜号关联 |
 | 一键分镜脚本、运镜与打光设计 | [visual-style.md](references/visual-style.md)、[director.md](references/director.md) 与 [lighting.md](references/lighting.md) | 六项视觉参数包、专业分镜、逐镜完整提示词表和首帧白模预演一起交付 |
@@ -87,6 +88,8 @@ Updream 的最小写入流程：检查连接与真实 tabId → 为本聊天/任
 | 剧情需要切到新机位，且要承接同一时刻/动作 | `reangle` 换机位接力 | 上一尾帧提供状态，新机位构图预演/Blender图提供布局，原始设定图提供身份 |
 | 反应镜、视线切、插入镜等正常剪辑 | `cut` | 按下一镜需要准备首帧；尾帧可做状态参考，不强制改图 |
 | 有意跳时、换场、蒙太奇 | `reset` | 新时空首帧，写明断点和保留的叙事联系 |
+
+设计电影感转场时另读 [transitions.md](references/transitions.md)。转场机制与衔接模式分别记录，前后镜/连续阶段提示词、剪辑切点或合成区间都进入分镜表；跨场景的动作/图形呼应不冒充continue。遮挡、模糊或白场另需清楚状态与B场布局，不能只凭无信息尾帧猜新场；continue仍原样使用真实尾帧。
 
 用户偏好：有叙事需要的镜头变化可用尾帧换角度；超长镜头用尾帧直接续接。**不要让每一小节或每个片段都换角度，也不要让全部镜头都同机位续拍。**
 
