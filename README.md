@@ -2,11 +2,11 @@
 
 作者：**星迹**。技术调用名：**cinematic-previz**。
 
-把导演镜头设计、Blender 白模预演、首帧生图、真实尾帧接力、视频生成与剪辑连起来。镜头变化按叙事选择；连续长镜头超过单次生成时长时，直接用真实尾帧同机位续接。
+把专业分镜、逐镜首帧白模生图、按需Blender预演、正式首帧、真实尾帧接力、视频生成与剪辑连起来。镜头变化按叙事选择；连续长镜头超过单次生成时长时，直接用真实尾帧同机位续接。
 
 ## 版本与更新记录
 
-当前发布版本：**v2026.10.21.4**。功能变化见 [更新记录](CHANGELOG.md)；Git 标签固定对应发布提交，历史版本可通过标签取得。同步脚本的 SHA256 revision 用于核对具体文件内容，不替代发布版本号。
+当前发布版本：**v2026.10.21.5**。功能变化见 [更新记录](CHANGELOG.md)；Git 标签固定对应发布提交，历史版本可通过标签取得。同步脚本的 SHA256 revision 用于核对具体文件内容，不替代发布版本号。
 
 ## 普通用户：下载即可安装，不需要开发者项目
 
@@ -29,7 +29,8 @@
 
 | 使用内容 | 需要什么 |
 | --- | --- |
-| 导演分镜、镜头设计、提示词与接力规划 | 能加载技能或读取 Markdown 的 AI 宿主 |
+| 文字分镜、镜头设计、提示词与接力规划 | 能加载技能或读取Markdown的AI宿主 |
+| 逐镜首帧白模预演 | 宿主内置生图能力，Codex优先使用image_gen |
 | 本地模式检查、可选项目同步 | Python 3.11+，只用标准库 |
 | 精确尾帧提取 | Python 和 FFmpeg，可显式指定现有 FFmpeg 路径 |
 | 白模实际渲染 | 本机 Blender 或可用桥接 |
@@ -74,6 +75,7 @@ python "<来源技能目录>/scripts/sync_from_project.py" --project-root "<保�
 | [视觉风格](references/visual-style.md) | 从剧情推导风格与情绪；构图、色调、配色、材质及六项参数包 |
 | [导演设计](references/director.md) | 专业分镜双表、景别、机位、运镜和剪辑理由 |
 | [表演提示词编译器](references/performance-compiler.md) | 逐拍表演、语音、正负向约束、结构化JSON与本地校验器 |
+| [逐镜首帧白模](references/first-frame-previz.md) | Codex内置生图、角色身份色、起幅审图与镜号关联 |
 | [完整分镜示例](references/storyboard-example.md) | 同镜号的叙事摄影表与视觉美术表 |
 | [Blender 双预演](references/blender.md) | 导演预演与模型运动引导片 |
 | [尾帧接力](references/frame-handoff.md) | 换机位、长镜头续接、实际剪辑出点 |
