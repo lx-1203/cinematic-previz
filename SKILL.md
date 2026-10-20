@@ -42,7 +42,7 @@ python "<skill-dir>/scripts/sync_from_project.py"
 | 查询具体工具参数 | [updream-tools.md](references/updream-tools.md) 与 [参数示例](references/updream-examples.json) | 33 个 MCP 接口与一一对应示例；运行时 tools/list 为准 |
 | 本地图片快速上传及素材复用 | [updream-upload.md](references/updream-upload.md) | 项目素材库上传、按内容复用及普通参考连线；不触发生成 |
 | 虚拟角色库、网站确认或未覆盖设置 | [updream-ui.md](references/updream-ui.md) | 必要的浏览器补充；不绕过其他工作区认领 |
-| 一键分镜脚本、运镜与打光设计 | [director.md](references/director.md) 与 [lighting.md](references/lighting.md) | 将叙事、运动路径和光线可见结果写进逐镜正文，不能只列术语 |
+| 一键分镜脚本、运镜与打光设计 | [director.md](references/director.md) 与 [lighting.md](references/lighting.md) | 默认交付专业分镜表，将叙事、运镜、焦点、打光与接镜写进逐镜单元格 |
 | 完整分镜与视频制作 | 下文导演链，按步骤读参考文件 | 保留镜头选择、首帧和真实尾帧接力规则 |
 
 Updream 的最小写入流程：检查连接与真实 tabId → 为本聊天/任务 open_workspace → claim_canvas → 读节点完整草稿 → 带 workspaceId 写入并核对 → release_canvas / close_workspace。同一 MCP 进程中的多个聊天也分别创建工作区；不同项目并行，同项目跨标签保持排他认领。只有只读检查时无需新建工作区。未授权的真实生成不会因初始化插件而自动提交。
@@ -131,7 +131,7 @@ python "<skill-dir>/scripts/frame_bridge.py" verify "<project>/handoffs/SH010_SG
 - 首中尾图、运动回放和最终接点检查实际执行；未检查项明确记录。
 - 所有文件在项目内有版本与来源；没有拿过期前镜的尾帧给新后镜使用。
 
-给用户展示镜头选择理由、接力前后对照、成片和保存路径。内部制作表按需提供，不用冗长流程表代替实际成果。
+导演分镜脚本默认用专业分镜表交付，格式与执行要求见 [director.md](references/director.md#默认交付专业分镜表)。展示镜头选择理由、实际可用的接力对照与成片及保存路径；内部任务、费用和接口记录按需另附，不混入导演主表。
 
 ## 政策科普短视频
 
