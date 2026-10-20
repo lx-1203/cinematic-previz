@@ -43,6 +43,7 @@ python "<skill-dir>/scripts/sync_from_project.py"
 | 本地图片快速上传及素材复用 | [updream-upload.md](references/updream-upload.md) | 项目素材库上传、按内容复用及普通参考连线；不触发生成 |
 | 虚拟角色库、网站确认或未覆盖设置 | [updream-ui.md](references/updream-ui.md) | 必要的浏览器补充；不绕过其他工作区认领 |
 | 风格、情绪、色调、配色与构图 | [visual-style.md](references/visual-style.md) | 有剧情直接推导视觉方案；没有依据才问预期观感，不使用导演姓名路由 |
+| 高级运镜、对焦与时间语言 | [camera-language.md](references/camera-language.md) | 甩镜、主观移动、整周/上升环绕、移焦、变速推进、拉远揭示、前景擦过、慢动作等；按剧情选型，展开路径/焦点/时间及回退 |
 | 表演意图、角色动作、对白语气与提示词包 | [performance-compiler.md](references/performance-compiler.md) | 从剧情编译可见表演、语音参数、逐拍时序、正负向约束，运行本地检查并单列语义/视频验收 |
 | 分镜对应的首帧白模预演 | [first-frame-previz.md](references/first-frame-previz.md) | 默认每个逻辑镜头一张Codex生图白模起幅，主角可用稳定身份色区分，并回填镜号关联 |
 | 一键分镜脚本、运镜与打光设计 | [visual-style.md](references/visual-style.md)、[director.md](references/director.md) 与 [lighting.md](references/lighting.md) | 六项视觉参数包、专业分镜、逐镜完整提示词表和首帧白模预演一起交付 |
@@ -99,7 +100,7 @@ Updream 的最小写入流程：检查连接与真实 tabId → 为本聊天/任
 
 ## 按任务规模执行这条链
 
-1. **导演设计**：先读 [visual-style.md](references/visual-style.md)，根据剧情直接确定风格与情绪，输出六项视觉参数包；再读 [director.md](references/director.md) 和 [lighting.md](references/lighting.md)。标出信息揭示、情绪转折、动作因果；确定场次观察立场、构图规律、色调/配色、材质与光线基线，再把逐镜起落构图、运动触发/路径/节奏、焦点、视觉变化与切点理由写进分镜表。固定镜头也有选择理由，不套全场慢推或复杂运镜配额。涉及角色表演时按 [表演提示词编译器](references/performance-compiler.md) 将意图编译为可见部位、主动作、对白语音参数与时序；表演摘要回填分镜表，结构检查不能冒充表演或口型验收。
+1. **导演设计**：先读 [visual-style.md](references/visual-style.md)，根据剧情直接确定风格与情绪，输出六项视觉参数包；再读 [director.md](references/director.md) 和 [lighting.md](references/lighting.md)。标出信息揭示、情绪转折、动作因果；确定场次观察立场、构图规律、色调/配色、材质与光线基线，再把逐镜起落构图、运动触发/路径/节奏、焦点、视觉变化与切点理由写进分镜表。固定镜头也有选择理由，不套全场慢推或复杂运镜配额。涉及高级运动、对焦或时间设计时读 [camera-language.md](references/camera-language.md)，区分机位、变焦、移焦与时间映射；类型名称须展开为逐阶段起落构图、触发、路径/速度、焦点和针对性验收，完整提示词逐镜入表。涉及角色表演时按 [表演提示词编译器](references/performance-compiler.md) 将意图编译为可见部位、主动作、对白语音参数与时序；表演摘要回填分镜表，结构检查不能冒充表演或口型验收。
 2. **统一状态**：建立人物、服装、道具、空间、光线的固定设定和当前动作状态；分配稳定的 scene/section/shot/segment ID，记录在制作项目的 `production.json`。字段与示例见 [production-contract.md](references/production-contract.md)。
 3. **导演预演**：先按 [first-frame-previz.md](references/first-frame-previz.md) 用Codex内置生图，为每个逻辑镜头生成独立的首帧白模图；环境灰白、主角可用稳定身份色，实际审图后回填分镜。复杂空间、接触与运动再按 [blender.md](references/blender.md) 做粗模、机位与带时长预演，不把静态生图称作已验证的三维轨迹。
 4. **生成引导片**：只有目标模型实际支持参考视频/结构控制时，按它的要求另制干净、运动连续的引导片；导演预演的停格、标注、跳姿不能直接当控制视频。
