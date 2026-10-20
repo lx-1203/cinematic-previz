@@ -5,9 +5,9 @@ metadata:
 description: Use when creating or revising 漫剧、短剧、导演分镜、Blender 白模预演、首帧生图、AI 视频、镜头接力，或在 Updream 使用 MCP 浏览器插件操作节点、多聊天分工和初始化工作区；不用于单独建模或普通视频转码。
 ---
 
-# AI漫剧
+# 星迹的AIGC
 
-作者：星迹。显示名为 AI漫剧，技术调用名为 `$cinematic-previz`。
+作者：星迹。显示名为 星迹的AIGC，技术调用名为 `$cinematic-previz`。
 
 ## 每次调用前：确认独立模式或项目同步模式
 

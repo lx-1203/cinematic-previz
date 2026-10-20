@@ -1,4 +1,4 @@
-# AI漫剧
+# 星迹的AIGC
 
 作者：**星迹**。技术调用名：**cinematic-previz**。
 
@@ -6,11 +6,11 @@
 
 ## 版本与更新记录
 
-当前发布版本：**v2026.10.21.5**。功能变化见 [更新记录](CHANGELOG.md)；Git 标签固定对应发布提交，历史版本可通过标签取得。同步脚本的 SHA256 revision 用于核对具体文件内容，不替代发布版本号。
+当前发布版本：**v2026.10.21.6**。功能变化见 [更新记录](CHANGELOG.md)；Git 标签固定对应发布提交，历史版本可通过标签取得。同步脚本的 SHA256 revision 用于核对具体文件内容，不替代发布版本号。
 
 ## 普通用户：下载即可安装，不需要开发者项目
 
-如果使用附带浏览器插件的 `AI漫剧-skill.zip`，解压后先读顶层 `安装说明.md`：顶层 `cinematic-previz` 是技能，`Updream-Node-Helper/extension` 是 Chrome / Edge 扩展，配套 MCP 服务也在该插件目录内。两部分分别安装；浏览器登录和本机配对由使用者完成。
+如果使用附带浏览器插件的技能整合包（旧版文件名 `AI漫剧-skill.zip`），解压后先读顶层 `安装说明.md`：顶层 `cinematic-previz` 是技能，`Updream-Node-Helper/extension` 是 Chrome / Edge 扩展，配套 MCP 服务也在该插件目录内。两部分分别安装；浏览器登录和本机配对由使用者完成。
 
 1. 下载并解压技能包，找到直接包含 `SKILL.md` 的文件夹。
 2. 将这个文件夹命名为 `cinematic-previz`，放进当前宿主的技能目录。Codex 使用配置的 `CODEX_HOME/skills`，未设置时使用用户主目录下的 `.codex/skills`；其他宿主按其自身的技能安装方式使用。
@@ -18,10 +18,10 @@
 4. 让宿主重新发现技能，或在新聊天调用：
 
 ```text
-使用 $cinematic-previz（AI漫剧），根据这个剧本设计镜头和制作方案。
+使用 $cinematic-previz（星迹的AIGC），根据这个剧本设计镜头和制作方案。
 ```
 
-“AI漫剧”是界面显示名称；`$cinematic-previz` 是稳定调用标识。也可用自然语言说“使用 AI漫剧”。只下载 ZIP、尚未解压安装时，宿主无法发现里面的技能。支持 Agent Skills 或可读取 Markdown 的宿主可以使用核心流程；具体调用界面由宿主提供。
+“星迹的AIGC”是界面显示名称；`$cinematic-previz` 是稳定调用标识。也可用自然语言说“使用星迹的AIGC”。只下载 ZIP、尚未解压安装时，宿主无法发现里面的技能。支持 Agent Skills 或可读取 Markdown 的宿主可以使用核心流程；具体调用界面由宿主提供。
 
 普通用户**不需要** `.skill-source.json`、作者电脑目录、Git 仓库、Updream 账号或 API key 才能做导演分镜与提示词。基础流程不依赖某个视频平台；安装 skill 不会自动安装 Blender、浏览器扩展或生成模型。
 
