@@ -29,3 +29,9 @@
 - [M. David Mullen, ASC：Notes on Camera Movement](https://studentfilmmakers.com/notes-on-camera-movement-when-to-move-the-camera-and-why-by-m-david-mullen-asc/)：参考其从戏剧动机与剪辑需要判断何时运动的思考方式，不把个人焦距选择或具体影片镜头当成统一模板。
 - [ARRI Lighting Handbook](https://www.arri.com/resource/blob/83996/409091c612f371b0c68b41d9dcb636db/arri-lighting-handbook-english-data.pdf)：用于核对软硬光及主光、补光、分离与背景光的区分。没有复制手册图片、完整章节或特定灯具配方。
 - 场次视觉递进、逐镜运动/光线交付字段、AI能力适配与验收规则为本技能原创设计；不承诺仅凭术语即可得到某种电影效果。
+
+## 视觉风格路由的依据与边界（2026-10-21）
+
+- 十类检索入口由用户提出的全风格工作流改写，按其随后明确要求去掉所有姓名透镜，以剧情和情绪直接推导参数。不沿用目录中的固定焦距、帧率、颜色含义或媒介布光禁令，不声称目录穷尽所有风格。
+- [RenderMan：Incredible Cinematography](https://prod.renderman.pixar.com/stories/incredible-cinematography)：制作团队讲述实拍参考、造型光与不同段落的色彩选择，支持将摄影思想转译为动画画面的做法，不将灯具类型限定为单一媒介配方。
+- 风格参数包、构图与色调/配色分栏、剧情自动判断和逐镜色彩递进属于本技能的执行设计；示例中的焦距、颜色、光源与时间点是创作规划，不是某位创作者的固定公式，也不是生成结果保证。

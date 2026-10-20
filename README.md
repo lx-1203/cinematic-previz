@@ -6,7 +6,7 @@
 
 ## 版本与更新记录
 
-当前发布版本：**v2026.10.21.2**。功能变化见 [更新记录](CHANGELOG.md)；Git 标签固定对应发布提交，历史版本可通过标签取得。同步脚本的 SHA256 revision 用于核对具体文件内容，不替代发布版本号。
+当前发布版本：**v2026.10.21.3**。功能变化见 [更新记录](CHANGELOG.md)；Git 标签固定对应发布提交，历史版本可通过标签取得。同步脚本的 SHA256 revision 用于核对具体文件内容，不替代发布版本号。
 
 ## 普通用户：下载即可安装，不需要开发者项目
 
@@ -71,7 +71,9 @@ python "<来源技能目录>/scripts/sync_from_project.py" --project-root "<保�
 | 入口 | 内容 |
 | --- | --- |
 | [SKILL.md](SKILL.md) | 核心流程、模式与能力选择 |
-| [导演设计](references/director.md) | 景别、机位、运镜和剪辑理由 |
+| [视觉风格](references/visual-style.md) | 从剧情推导风格与情绪；构图、色调、配色、材质及六项参数包 |
+| [导演设计](references/director.md) | 专业分镜双表、景别、机位、运镜和剪辑理由 |
+| [完整分镜示例](references/storyboard-example.md) | 同镜号的叙事摄影表与视觉美术表 |
 | [Blender 双预演](references/blender.md) | 导演预演与模型运动引导片 |
 | [尾帧接力](references/frame-handoff.md) | 换机位、长镜头续接、实际剪辑出点 |
 | [生成适配](references/generation.md) | 图片职责与目标工具能力 |

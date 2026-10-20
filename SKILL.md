@@ -42,7 +42,8 @@ python "<skill-dir>/scripts/sync_from_project.py"
 | 查询具体工具参数 | [updream-tools.md](references/updream-tools.md) 与 [参数示例](references/updream-examples.json) | 33 个 MCP 接口与一一对应示例；运行时 tools/list 为准 |
 | 本地图片快速上传及素材复用 | [updream-upload.md](references/updream-upload.md) | 项目素材库上传、按内容复用及普通参考连线；不触发生成 |
 | 虚拟角色库、网站确认或未覆盖设置 | [updream-ui.md](references/updream-ui.md) | 必要的浏览器补充；不绕过其他工作区认领 |
-| 一键分镜脚本、运镜与打光设计 | [director.md](references/director.md) 与 [lighting.md](references/lighting.md) | 默认交付专业分镜表，将叙事、运镜、焦点、打光与接镜写进逐镜单元格 |
+| 风格、情绪、色调、配色与构图 | [visual-style.md](references/visual-style.md) | 有剧情直接推导视觉方案；没有依据才问预期观感，不使用导演姓名路由 |
+| 一键分镜脚本、运镜与打光设计 | [visual-style.md](references/visual-style.md)、[director.md](references/director.md) 与 [lighting.md](references/lighting.md) | 先给六项视觉参数包，再给同镜号的叙事摄影表与视觉美术表 |
 | 完整分镜与视频制作 | 下文导演链，按步骤读参考文件 | 保留镜头选择、首帧和真实尾帧接力规则 |
 
 Updream 的最小写入流程：检查连接与真实 tabId → 为本聊天/任务 open_workspace → claim_canvas → 读节点完整草稿 → 带 workspaceId 写入并核对 → release_canvas / close_workspace。同一 MCP 进程中的多个聊天也分别创建工作区；不同项目并行，同项目跨标签保持排他认领。只有只读检查时无需新建工作区。未授权的真实生成不会因初始化插件而自动提交。
@@ -54,6 +55,10 @@ Updream 的最小写入流程：检查连接与真实 tabId → 为本聊天/任
 - 收集现有剧本、镜头脚本、模型/坐标、成片、参考图、目标画幅和工具。用户已有分镜时先核对并补缺口，不擅自重写。
 - 只有坐标时用粗略尺寸和朝向补成占位体，标注假设；模型承担空间和动作证据，外观由参考图补齐。
 - 只要求方案时交付方案；要求制作时继续执行可用阶段。缺脚本或素材时准备独立部分并明确缺项，不伪造图片、视频、工具或任务状态。
+
+## 风格与情绪先从剧情判断
+
+有剧情或场景时，先判断人物目标、冲突、信息揭示和情绪曲线，结合用户已有偏好，直接采用有依据的视觉方案；简述必要假设，不再让用户选风格或情绪。没有剧情且观感不明时，只问预期风格与希望观众感受到的情绪。选项、内部路由、参数包和提示词都不使用导演或工作室姓名。采用“剧情与情绪 → 风格家族 → 参数锁定”，逐项落实风格、构图、色调、配色、运镜与光影，详见 [visual-style.md](references/visual-style.md)。
 
 ## 视频项目预算
 
@@ -92,7 +97,7 @@ Updream 的最小写入流程：检查连接与真实 tabId → 为本聊天/任
 
 ## 按任务规模执行这条链
 
-1. **导演设计**：标出信息揭示、情绪转折、动作因果；先定场次观察立场、视觉递进与光线基线，再为每镜写起落构图、运动触发/路径/节奏、焦点、光线可见结果与切点理由，直接进入用户脚本。先读 [director.md](references/director.md) 和 [lighting.md](references/lighting.md)；固定镜头也有主动选择理由，不套全场慢推或复杂运镜配额。
+1. **导演设计**：先读 [visual-style.md](references/visual-style.md)，根据剧情直接确定风格与情绪，输出六项视觉参数包；再读 [director.md](references/director.md) 和 [lighting.md](references/lighting.md)。标出信息揭示、情绪转折、动作因果；确定场次观察立场、构图规律、色调/配色、材质与光线基线，再把逐镜起落构图、运动触发/路径/节奏、焦点、视觉变化与切点理由写进分镜表。固定镜头也有选择理由，不套全场慢推或复杂运镜配额。
 2. **统一状态**：建立人物、服装、道具、空间、光线的固定设定和当前动作状态；分配稳定的 scene/section/shot/segment ID，记录在制作项目的 `production.json`。字段与示例见 [production-contract.md](references/production-contract.md)。
 3. **导演预演**：Blender 粗模安排场面，比较必要机位与焦距，导出带时长的分镜视频，检查空间、信息和节奏。详见 [blender.md](references/blender.md)。
 4. **生成引导片**：只有目标模型实际支持参考视频/结构控制时，按它的要求另制干净、运动连续的引导片；导演预演的停格、标注、跳姿不能直接当控制视频。
@@ -124,6 +129,7 @@ python "<skill-dir>/scripts/frame_bridge.py" verify "<project>/handoffs/SH010_SG
 
 ## 交付前检查
 
+- 有剧情已直接推导并说明风格/情绪依据；没有把选择姓名变成用户任务。六项视觉参数包与逐镜风格、构图、色调、配色、材质和光影相互一致。
 - 每镜正文能说明叙事变化、起落构图、运动或固定的选择、焦点与打光结果；不以焦距数字、运镜术语或“电影光”代替设计。复杂运镜有可观察的收益。
 - 镜头与生成片段区分清楚；超长镜头没有被强制切机位。
 - 接力图来自实际选中版本和实际出点；`continue` 不重新绘制首帧；`reangle` 只改变机位，不无故重置动作。
