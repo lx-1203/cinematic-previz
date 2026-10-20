@@ -23,3 +23,9 @@
 需要换机位的剧情接点可从上一真实尾状态生成新角度首帧；超出单次生成时长的连续长镜头直接以真实尾帧续接。不是每节都换角度。该策略与版本指纹、动作状态和片段时间轴结合，是本 skill 的核心个性化部分，不宣称任何一种方式在所有镜头都最好。
 
 上游 MIT 版权和许可全文保存在 [upstream-licenses.txt](upstream-licenses.txt)。本包的原创工具不含上游 Python 源码。
+
+## 运镜与打光一手资料（2026-10-21）
+
+- [M. David Mullen, ASC：Notes on Camera Movement](https://studentfilmmakers.com/notes-on-camera-movement-when-to-move-the-camera-and-why-by-m-david-mullen-asc/)：参考其从戏剧动机与剪辑需要判断何时运动的思考方式，不把个人焦距选择或具体影片镜头当成统一模板。
+- [ARRI Lighting Handbook](https://www.arri.com/resource/blob/83996/409091c612f371b0c68b41d9dcb636db/arri-lighting-handbook-english-data.pdf)：用于核对软硬光及主光、补光、分离与背景光的区分。没有复制手册图片、完整章节或特定灯具配方。
+- 场次视觉递进、逐镜运动/光线交付字段、AI能力适配与验收规则为本技能原创设计；不承诺仅凭术语即可得到某种电影效果。
