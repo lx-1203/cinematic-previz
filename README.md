@@ -72,6 +72,9 @@ python "<来源技能目录>/scripts/sync_from_project.py" --project-root "<保�
 | 入口 | 内容 |
 | --- | --- |
 | [SKILL.md](SKILL.md) | 核心流程、模式与能力选择 |
+| [树状模块读取](references/module-loading.md) | 模块分类、横向依赖组合、预制Python读取器及完整交付要求 |
+| [模块索引](module-index.json) | 分类树和章节/依赖的单一配置 |
+| [完整工作流与检查](references/workflow.md) | 保留原有制作链、预算、真实尾帧与逐镜完整交付规则 |
 | [视觉风格](references/visual-style.md) | 从剧情推导风格与情绪；构图、色调、配色、材质及六项参数包 |
 | [导演设计](references/director.md) | 专业分镜、逐镜完整提示词表、景别、机位、运镜和剪辑理由 |
 | [高级镜头语言库](references/camera-language.md) | 16类机位、对焦与时间语言，完整提示词、复合镜头入表及质检/回退 |
