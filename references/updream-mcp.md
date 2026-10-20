@@ -1,12 +1,14 @@
 # Updream MCP 浏览器插件使用指南
 
-适用：Updream MCP Bridge 0.3.0；30 个静态 MCP 工具，项目内原生 canvas/gen 目录随网站实时注册。插件通过已登录浏览器操作指定标签页，不依赖哪个窗口在前台。
+适用：Updream MCP Bridge 0.4.0；33 个静态 MCP 工具，项目内原生 canvas/gen/materials 目录随网站实时注册。插件通过已登录浏览器操作指定标签页，不依赖哪个窗口在前台。
+
+当前宿主目录缓存尚未显示新增工具时，可使用[现有服务直连入口](updream-preflight.md)，不必为了工具发现重启共享服务。该参考同时说明提交前的参考编号、参数和预算自动核对。
 
 ## 1. 工具发现与首次安装
 
 在当前 Codex 工具目录查找 updream 工具；宿主可能添加命名空间前缀，以下使用工具自身的名称。不要编造一个不存在的工具或把伪调用当执行成功。
 
-如果当前工具目录没有它们，先找到用户实际解压或保存 Updream-Node-Helper 的项目目录，运行该目录的 `npm run setup` 注册 stdio 服务；用户需在 Codex 重载 MCP。其他电脑先安装 Node 22.12+ / 24+、Python 3.11+，在解压目录执行 `npm ci --omit=dev --ignore-scripts` 和 setup。目录移动后重新 setup。
+如果当前工具目录没有它们，先区分“尚未注册”与“已经注册但本聊天未加载”：在用户实际 Updream-Node-Helper 项目目录运行 `npm run diagnose` 只读检查已有服务。已有注册无需反复 setup；用户在 Codex 重新加载 MCP 后再发现工具。确实未安装时，才运行 `npm run setup` 注册 stdio 服务。其他电脑先安装 Node 22.12+ / 24+、Python 3.11+，在解压目录执行 `npm ci --omit=dev --ignore-scripts` 和 setup。目录移动后重新 setup。故障反馈与维护闭环见 [updream-maintenance.md](updream-maintenance.md)。
 
 浏览器首次使用：加载目录中的 extension 为已解压扩展 → 在扩展弹窗导入本机生成的 `.local/connection.json` → 登录 Updream 项目 → 刷新网站 → 点击“启用当前画布并刷新”。更新时重新加载扩展并刷新 Updream。配对文件不在 ZIP 内，不上传或抄进提示词。
 
@@ -16,10 +18,12 @@
 
 1. `updream_diagnose {}`：确认本机版本、browserConnected、pendingRequests、activeMutations；无浏览器连接时先处理配对。
 2. `updream_list_tabs {}`：取得真实 tabId、URL、enabled、工具数和页面错误。选用户指定项目；多个候选且目标不明时询问目标，不猜前台标签。
-3. `updream_diagnose {tabId}` 与 `updream_list_tools {tabId}`：确认已启用且有真实 canvas/gen 工具，必要时查看当前原生 JSON Schema。
+3. `updream_diagnose {tabId}` 与 `updream_list_tools {tabId}`：确认已启用且有真实 canvas/gen/materials 工具，必要时查看当前原生 JSON Schema。
 4. 仅读取时可直接 get_snapshot / find_nodes / get_node。预计修改时，先 open_workspace，再 claim_canvas；认领成功后读取将要修改的最新状态。
 
-**30 与 17 的区别：** MCP tools/list 包含连接、协作、效率和原生包装器，共 30 个；list_tools 返回网页原生工具，参考站点版本为 17 个。不要因为页面只有 17 个就认定本机丢失工具，也不能假定将来始终是 17。
+**本机工具与网页目录的区别：** MCP tools/list 包含连接、协作、效率和原生包装器，共 33 个；list_tools 返回网页实时注册的原生工具，数量随页面和站点版本变化，不能用固定数量判断缺失。
+
+若当前宿主Schema已包含目录精简字段，可先`list_tools {tabId,detail:"names"}`发现名称，再用`toolNames:["canvas.updateNode"]`与`detail:"full"`只取需要的实时参数；`summary`省略Schema。默认旧调用仍返回全量。旧运行服务未加载字段时等制作空闲后安全重载共享服务及宿主工具目录，不反复试错。具体路由见[updream-efficiency.md](updream-efficiency.md)。
 
 成功 MCP 结果在 `structuredContent` 中为 `{ok:true,data:...}`；异常为 `{ok:false,error:{code,message,details?}}` 且 isError=true。部分宿主只展示 content 的同一 JSON 文本。网站原生返回已由桥接拆包，不需要再当成页面文本解析。
 
@@ -64,7 +68,7 @@ list_workspaces 返回工作名称、会话是否在线、认领的 projectId/ta
 
 ## 4. 接口怎么选
 
-全部严格参数与 30 个独立示例见 [updream-tools.md](updream-tools.md)；原始示例数据在 [updream-examples.json](updream-examples.json)。需要哪个工具就查对应章节，不必一次加载所有 Schema。
+全部严格参数与 33 个独立示例见 [updream-tools.md](updream-tools.md)；原始示例数据在 [updream-examples.json](updream-examples.json)。需要哪个工具就查对应章节，不必一次加载所有 Schema。
 
 | 目的 | 工具与关键参数 |
 | --- | --- |
@@ -95,7 +99,7 @@ list_workspaces 返回工作名称、会话是否在线、认领的 projectId/ta
 
 checked 只支持 name/prompt。模型、比例、参考图用 update_node，再 get_node 核对；它不是网站原子条件更新，网页手工编辑仍可能介入。create_node 后核对 nodeId 和 promptSaved；创建返回不代表提示词已保存。
 
-**批量：** steps 内写原生 `canvas.*` / `gen.*` 名称，不能写 `updream_*`；不把 tabId/workspaceId 塞进每一步原生 arguments。先整体校验实时 JSON Schema，再顺序执行。不能用尚未返回的 create_node.nodeId 当成已知 ID；本版没有步骤结果变量替换，依赖新 ID 的操作分两次调用。
+**批量：** steps 内写原生 `canvas.*` / `gen.*` / `materials.*` 名称，不能写 `updream_*`；不把 tabId/workspaceId 塞进每一步原生 arguments。先整体校验实时 JSON Schema，再顺序执行。不能用尚未返回的 create_node.nodeId 当成已知 ID；本版没有步骤结果变量替换，依赖新 ID 的操作分两次调用。
 
 失败时读取 error.details.completed / stoppedAt / remaining：已完成步骤不会回滚。不要重跑整个批次；先核对已执行结果，再决定剩余步骤。取消只停止本请求后续步骤，已发出的当前步骤不可撤销。
 
@@ -103,7 +107,7 @@ checked 只支持 name/prompt。模型、比例、参考图用 update_node，再
 
 ## 6. 未覆盖的能力与错误处理
 
-角色库、克隆空节点、本地文件上传、首尾帧专用槽、原生音频/报价没有独立固定 MCP 工具。先看当前 list_tools 有没有新增原生能力；没有时按 [界面补充](updream-ui.md) 使用已授权的可见界面，不猜 `audio`、`endFrame`、`characterLibrary` 等字段。image/referenceImages 是 Schema 指定的 URL，不是本地磁盘路径。
+本地图片上传与复用见[快速上传](updream-upload.md)。虚拟角色库、克隆空节点、首尾帧专用槽、原生音频/报价没有独立固定 MCP 工具。先看当前 list_tools 有没有新增原生能力；没有时按 [界面补充](updream-ui.md) 使用已授权的可见界面，不猜 `audio`、`endFrame`、`characterLibrary` 等字段。image/referenceImages 是 Schema 指定的 URL，不是本地磁盘路径。
 
 | 错误 | 下一步 |
 | --- | --- |

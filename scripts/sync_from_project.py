@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Refresh an installed skill from its registered project, without overwriting local edits."""
+"""Check a standalone skill, or refresh its explicitly registered project source."""
 import argparse
 from contextlib import nullcontext
 import hashlib
@@ -53,6 +53,24 @@ def snapshot(source):
         if path.is_file():
             result[rel.as_posix()] = path.read_bytes()
     return result
+
+
+def standalone_status(target):
+    """A downloaded skill is usable without a developer's private registration.
+
+    This fingerprints local contents only: it neither updates nor claims to have
+    checked a remote repository. Existing registration errors never reach here.
+    """
+    target = Path(target).resolve()
+    if safe_path(target, LOCK).exists():
+        raise ValueError('BUSY: another skill update owns the lock; do not remove a live lock')
+    if not (target/'SKILL.md').is_file() or source_folder(target) != target:
+        raise ValueError('SOURCE_NOT_FOUND: standalone target must contain its own SKILL.md')
+    hashes = {name:digest(data) for name,data in snapshot(target).items()}
+    return {'status':'current', 'mode':'standalone', 'remote_checked':False,
+            'project_root':None, 'source':str(target), 'target':str(target),
+            'skill_file':str(target/'SKILL.md'), 'changed':[],
+            'revision':digest(json.dumps(hashes,sort_keys=True).encode())}
 
 
 def atomic_write(path, data):
@@ -115,7 +133,8 @@ def sync(project, target, *, register=False, check=False):
                 changes.append(name)
             if conflicts:
                 raise ValueError('LOCAL_CONFLICT: merge installed edits into the project first: '+', '.join(conflicts))
-            report = {'status':'update_available' if changes else 'current', 'project_root':str(project),
+            report = {'status':'update_available' if changes else 'current', 'mode':'project',
+                      'remote_checked':False, 'project_root':str(project),
                       'source':str(source), 'target':str(target), 'skill_file':str(target/'SKILL.md'),
                       'revision':revision, 'changed':changes}
             if check:
@@ -180,7 +199,15 @@ def main():
     try:
         project = args.project_root or os.environ.get('CINEMATIC_PREVIZ_PROJECT')
         if not project:
-            state = json.loads((args.target/STATE).read_text(encoding='utf-8'))
+            state_path = safe_path(args.target.resolve(), STATE)
+            if not state_path.exists():
+                if args.register:
+                    raise ValueError('REGISTER_REQUIRED: --register requires an explicit --project-root')
+                print(json.dumps(standalone_status(args.target),ensure_ascii=False))
+                return 0
+            state = json.loads(state_path.read_text(encoding='utf-8'))
+            if not isinstance(state,dict) or not state.get('project_root'):
+                raise ValueError('INVALID_STATE: registration must declare project_root')
             project = state['project_root']
         print(json.dumps(sync(project,args.target,register=args.register,check=args.check),ensure_ascii=False))
         return 0

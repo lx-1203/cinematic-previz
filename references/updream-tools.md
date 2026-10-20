@@ -1,8 +1,8 @@
-# Updream MCP 接口列表 · 0.3.0
+# Updream MCP 接口列表 · 0.4.0
 
 由 server/tools.cjs 自动生成。Codex 通过 MCP tools/list 获得同一套接口。
 
-共 30 个接口：20 个直接接口、5 个效率接口和 5 个多工作区协作接口。需写入的工作先 open_workspace → claim_canvas；所有写入携带 workspaceId。不同项目并行，同项目跨标签互斥；结束后 release_canvas 或 close_workspace。只读检查无需新建工作区。所有节点接口必须指定真实 tabId。
+共 33 个接口：20 个直接接口、5 个效率接口、5 个多工作区协作接口和 3 个素材接口。需写入的工作先 open_workspace → claim_canvas；所有写入携带 workspaceId。不同项目并行，同项目跨标签互斥；结束后 release_canvas 或 close_workspace。只读检查无需新建工作区。所有节点接口必须指定真实 tabId。
 
 以下 name/arguments 是 MCP 调用示例，不是可直接执行的生产计划。示例 workspaceId、tabId、projectId、nodeId、connectionId 和提示词均为虚构，实际操作必须替换为当前接口返回的真实值及用户授权内容；生成示例不会被验证器执行。原生名称与能力查当前 list_tools，业务约束由网站继续校验。
 
@@ -15,7 +15,7 @@
 | updream_close_workspace | 否 | 工作结束后关闭并释放所有认领。recoverAbandoned 仅能清理已断开或 90 秒无心跳的其他会话；仍在写入时拒绝清理。结果未知需先核对再确认。 |
 | updream_connection_status | 是 | 检查本机 MCP 与浏览器插件的连接，不返回配对凭证。 |
 | updream_list_tabs | 是 | 列出已打开的 updream 标签页及其接口状态。先取真实 tabId，再读取快照和操作节点。 |
-| updream_list_tools | 是 | 列出指定 updream 标签页当前实际注册的原生工具及完整参数格式。 |
+| updream_list_tools | 是 | 查询标签页实时原生工具。detail=names只读名称，summary省略Schema；toolNames按点/下划线名称筛选。默认返回完整目录。 |
 | updream_get_snapshot | 是 | 读取画布节点、连线与选中项。提示词为摘要；truncated 时用 nextOffset 继续分页。 |
 | updream_get_node | 是 | 读取单节点详情、完整编辑草稿与生成历史。保存提示词前优先读 editDraft.prompt，摘要可能截断。 |
 | updream_create_node | 否 | 新建 image/video/text 节点，可保存提示词草稿，不触发生成。返回 nodeId；核对 promptSaved。 |
@@ -33,8 +33,11 @@
 | updream_create_text_task | 否 | 向文本节点提交生成，可能消耗积分，保留网站确认。完成后 get_node 读取 textContent。 |
 | updream_get_task_status | 是 | 读取画布生成任务状态、进度与结果。nodeId/taskId 至少一项；建议查询间隔不少于 5 秒，不重复创建任务。 |
 | updream_cancel_task | 否 | 取消指定节点正在进行的生成任务；不自动重新生成。 |
+| updream_upload_files | 否 | 上传明确指定的本地 PNG/JPEG/WebP 图片到当前项目素材库，按内容去重并读回核对；单张8MiB、总计32MiB、最多20张。可选nodeId创建图片素材节点并作为普通参考连入，保留已有参考，不配置专用首帧、不入虚拟角色库、不生成。部分失败查看completed，结果未知不重试。 |
+| updream_list_assets | 是 | 列出本插件在当前项目已核对的上传缓存：SHA256、assetId、URL和名称。不读取本地文件、不返回路径，当前远端存活性由复用时再次核对。 |
+| updream_reuse_assets | 否 | 按当前项目缓存SHA256复用图片到指定节点：先远端核对，再复用或创建图片节点及参考连线，并读回验证。不重新上传、不覆盖已有参考、不配置专用首帧、不生成。 |
 | updream_find_nodes | 是 | 跨页搜索节点名称、ID、提示词摘要，支持类型和状态筛选。返回 nextOffset 继续扫描；达到 maxScan 时明确标记。不是全文搜索或原子快照。 |
-| updream_call_native_tool | 否 | 按实时目录调用已注册的 canvas/gen 工具，先验证网页 JSON Schema，再保留网站业务校验与确认。写入仍要求工作区认领。 |
+| updream_call_native_tool | 否 | 按实时目录调用已注册的 canvas/gen/materials 工具，先验证网页 JSON Schema，再保留网站业务校验与确认。写入仍要求工作区认领。 |
 | updream_batch | 否 | 最多 20 步本工作区画布顺序调用。先验证全部实时 JSON Schema，业务校验仍在执行时进行。遇错、拒绝或取消停止并返回 completed/stoppedAt。不是事务，不回滚或自动重试。 |
 | updream_update_node_checked | 否 | 在已认领画布修改名称/完整提示词前比较 expected，写后读回核对。每个 changes 字段都需对应 expected；提示词必须来自完整 editDraft.prompt。仍非网站原子条件更新。 |
 | updream_diagnose | 是 | 诊断本机、浏览器和可选标签页的版本、启用状态及原生工具注册情况，不返回令牌。 |
@@ -267,7 +270,7 @@
 
 ## updream_list_tools
 
-列出指定 updream 标签页当前实际注册的原生工具及完整参数格式。
+查询标签页实时原生工具。detail=names只读名称，summary省略Schema；toolNames按点/下划线名称筛选。默认返回完整目录。
 
 ```json
 {
@@ -278,6 +281,23 @@
       "minimum": 0,
       "maximum": 9007199254740991,
       "description": "从 updream_list_tabs 取得的浏览器标签页 ID，必须显式指定"
+    },
+    "toolNames": {
+      "minItems": 1,
+      "maxItems": 30,
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^(canvas|gen|materials)[._][A-Za-z][A-Za-z0-9]*$"
+      }
+    },
+    "detail": {
+      "type": "string",
+      "enum": [
+        "names",
+        "summary",
+        "full"
+      ]
     }
   },
   "required": [
@@ -1269,6 +1289,162 @@
 }
 ```
 
+## updream_upload_files
+
+上传明确指定的本地 PNG/JPEG/WebP 图片到当前项目素材库，按内容去重并读回核对；单张8MiB、总计32MiB、最多20张。可选nodeId创建图片素材节点并作为普通参考连入，保留已有参考，不配置专用首帧、不入虚拟角色库、不生成。部分失败查看completed，结果未知不重试。
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "workspaceId": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+      "description": "每个聊天/工作单独 open_workspace 获得，写入前先认领画布"
+    },
+    "tabId": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991,
+      "description": "从 updream_list_tabs 取得的浏览器标签页 ID，必须显式指定"
+    },
+    "files": {
+      "minItems": 1,
+      "maxItems": 20,
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "nodeId": {
+      "type": "integer",
+      "exclusiveMinimum": 0,
+      "maximum": 9007199254740991,
+      "description": "从当前画布快照取得的真实节点 ID"
+    }
+  },
+  "required": [
+    "workspaceId",
+    "tabId",
+    "files"
+  ],
+  "additionalProperties": false
+}
+```
+
+调用示例：
+
+```json
+{
+  "name": "updream_upload_files",
+  "arguments": {
+    "workspaceId": "12345678-1234-4234-8234-123456789abc",
+    "tabId": 123,
+    "files": [
+      "D:/Film/SH07/first.png"
+    ],
+    "nodeId": 456
+  }
+}
+```
+
+## updream_list_assets
+
+列出本插件在当前项目已核对的上传缓存：SHA256、assetId、URL和名称。不读取本地文件、不返回路径，当前远端存活性由复用时再次核对。
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "tabId": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991,
+      "description": "从 updream_list_tabs 取得的浏览器标签页 ID，必须显式指定"
+    }
+  },
+  "required": [
+    "tabId"
+  ],
+  "additionalProperties": false
+}
+```
+
+调用示例：
+
+```json
+{
+  "name": "updream_list_assets",
+  "arguments": {
+    "tabId": 123
+  }
+}
+```
+
+## updream_reuse_assets
+
+按当前项目缓存SHA256复用图片到指定节点：先远端核对，再复用或创建图片节点及参考连线，并读回验证。不重新上传、不覆盖已有参考、不配置专用首帧、不生成。
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "workspaceId": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+      "description": "每个聊天/工作单独 open_workspace 获得，写入前先认领画布"
+    },
+    "tabId": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991,
+      "description": "从 updream_list_tabs 取得的浏览器标签页 ID，必须显式指定"
+    },
+    "nodeId": {
+      "type": "integer",
+      "exclusiveMinimum": 0,
+      "maximum": 9007199254740991,
+      "description": "从当前画布快照取得的真实节点 ID"
+    },
+    "hashes": {
+      "minItems": 1,
+      "maxItems": 20,
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-f0-9]{64}$"
+      }
+    }
+  },
+  "required": [
+    "workspaceId",
+    "tabId",
+    "nodeId",
+    "hashes"
+  ],
+  "additionalProperties": false
+}
+```
+
+调用示例：
+
+```json
+{
+  "name": "updream_reuse_assets",
+  "arguments": {
+    "workspaceId": "12345678-1234-4234-8234-123456789abc",
+    "tabId": 123,
+    "nodeId": 457,
+    "hashes": [
+      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    ]
+  }
+}
+```
+
 ## updream_find_nodes
 
 跨页搜索节点名称、ID、提示词摘要，支持类型和状态筛选。返回 nextOffset 继续扫描；达到 maxScan 时明确标记。不是全文搜索或原子快照。
@@ -1344,7 +1520,7 @@
 
 ## updream_call_native_tool
 
-按实时目录调用已注册的 canvas/gen 工具，先验证网页 JSON Schema，再保留网站业务校验与确认。写入仍要求工作区认领。
+按实时目录调用已注册的 canvas/gen/materials 工具，先验证网页 JSON Schema，再保留网站业务校验与确认。写入仍要求工作区认领。
 
 ```json
 {
@@ -1364,8 +1540,8 @@
     },
     "tool": {
       "type": "string",
-      "pattern": "^(canvas|gen)[._][A-Za-z][A-Za-z0-9]*$",
-      "description": "来自实时工具目录的 canvas/gen 名称"
+      "pattern": "^(canvas|gen|materials)[._][A-Za-z][A-Za-z0-9]*$",
+      "description": "来自实时目录的 canvas/gen/materials 名称"
     },
     "arguments": {
       "default": {},
@@ -1466,8 +1642,8 @@
         "properties": {
           "tool": {
             "type": "string",
-            "pattern": "^(canvas|gen)[._][A-Za-z][A-Za-z0-9]*$",
-            "description": "来自实时工具目录的 canvas/gen 名称"
+            "pattern": "^(canvas|gen|materials)[._][A-Za-z][A-Za-z0-9]*$",
+            "description": "来自实时目录的 canvas/gen/materials 名称"
           },
           "arguments": {
             "default": {},
