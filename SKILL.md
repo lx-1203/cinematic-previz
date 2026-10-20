@@ -43,6 +43,7 @@ python "<skill-dir>/scripts/sync_from_project.py"
 | 本地图片快速上传及素材复用 | [updream-upload.md](references/updream-upload.md) | 项目素材库上传、按内容复用及普通参考连线；不触发生成 |
 | 虚拟角色库、网站确认或未覆盖设置 | [updream-ui.md](references/updream-ui.md) | 必要的浏览器补充；不绕过其他工作区认领 |
 | 风格、情绪、色调、配色与构图 | [visual-style.md](references/visual-style.md) | 有剧情直接推导视觉方案；没有依据才问预期观感，不使用导演姓名路由 |
+| 表演意图、角色动作、对白语气与提示词包 | [performance-compiler.md](references/performance-compiler.md) | 从剧情编译可见表演、语音参数、逐拍时序、正负向约束，运行本地检查并单列语义/视频验收 |
 | 一键分镜脚本、运镜与打光设计 | [visual-style.md](references/visual-style.md)、[director.md](references/director.md) 与 [lighting.md](references/lighting.md) | 先给六项视觉参数包，再给同镜号的叙事摄影表与视觉美术表 |
 | 完整分镜与视频制作 | 下文导演链，按步骤读参考文件 | 保留镜头选择、首帧和真实尾帧接力规则 |
 
@@ -97,7 +98,7 @@ Updream 的最小写入流程：检查连接与真实 tabId → 为本聊天/任
 
 ## 按任务规模执行这条链
 
-1. **导演设计**：先读 [visual-style.md](references/visual-style.md)，根据剧情直接确定风格与情绪，输出六项视觉参数包；再读 [director.md](references/director.md) 和 [lighting.md](references/lighting.md)。标出信息揭示、情绪转折、动作因果；确定场次观察立场、构图规律、色调/配色、材质与光线基线，再把逐镜起落构图、运动触发/路径/节奏、焦点、视觉变化与切点理由写进分镜表。固定镜头也有选择理由，不套全场慢推或复杂运镜配额。
+1. **导演设计**：先读 [visual-style.md](references/visual-style.md)，根据剧情直接确定风格与情绪，输出六项视觉参数包；再读 [director.md](references/director.md) 和 [lighting.md](references/lighting.md)。标出信息揭示、情绪转折、动作因果；确定场次观察立场、构图规律、色调/配色、材质与光线基线，再把逐镜起落构图、运动触发/路径/节奏、焦点、视觉变化与切点理由写进分镜表。固定镜头也有选择理由，不套全场慢推或复杂运镜配额。涉及角色表演时按 [表演提示词编译器](references/performance-compiler.md) 将意图编译为可见部位、主动作、对白语音参数与时序；表演摘要回填分镜表，结构检查不能冒充表演或口型验收。
 2. **统一状态**：建立人物、服装、道具、空间、光线的固定设定和当前动作状态；分配稳定的 scene/section/shot/segment ID，记录在制作项目的 `production.json`。字段与示例见 [production-contract.md](references/production-contract.md)。
 3. **导演预演**：Blender 粗模安排场面，比较必要机位与焦距，导出带时长的分镜视频，检查空间、信息和节奏。详见 [blender.md](references/blender.md)。
 4. **生成引导片**：只有目标模型实际支持参考视频/结构控制时，按它的要求另制干净、运动连续的引导片；导演预演的停格、标注、跳姿不能直接当控制视频。
@@ -117,6 +118,14 @@ python "<skill-dir>/scripts/frame_bridge.py" verify "<project>/handoffs/SH010_SG
 
 `--frame-index` 是从 0 开始的解码显示帧编号，可选择候选剪辑出点。使用更早帧时，先把实际前片出点调整到那里并确认，再从最终保留片段重新提取尾帧。验证命令只证明文件来源未变，不证明脸、动作或构图正确。
 
+表演包本地检查：
+
+~~~text
+python -X utf8 "<skill-dir>/scripts/validate_performance.py" "<project>/direction/SH010_performance_v01.json"
+~~~
+
+只检查结构、声明和原文覆盖；退出0仍须语义审读，实际视频另验，详见 [表演编译与回退](references/performance-compiler.md)。
+
 ## 操作边界与状态
 
 - 生图优先当前内置图像工具；本地参考先实际查看，依工具当前参数传入，不以提示词中的路径代替图片附件。
@@ -131,6 +140,7 @@ python "<skill-dir>/scripts/frame_bridge.py" verify "<project>/handoffs/SH010_SG
 
 - 有剧情已直接推导并说明风格/情绪依据；没有把选择姓名变成用户任务。六项视觉参数包与逐镜风格、构图、色调、配色、材质和光影相互一致。
 - 每镜正文能说明叙事变化、起落构图、运动或固定的选择、焦点与打光结果；不以焦距数字、运镜术语或“电影光”代替设计。复杂运镜有可观察的收益。
+- 表演执行文本已去掉抽象心理词，台词逐字保留；线索确实可见，动作/语气/时序能读懂。自动检查、语义审读和实际成片验收分开记录，负向与音频字段符合实际工具。
 - 镜头与生成片段区分清楚；超长镜头没有被强制切机位。
 - 接力图来自实际选中版本和实际出点；`continue` 不重新绘制首帧；`reangle` 只改变机位，不无故重置动作。
 - 关键道具持物手、视线、空间朝向、服装、光线连续；镜像和二维裁剪不能冒充新机位。
