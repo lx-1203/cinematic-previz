@@ -552,6 +552,14 @@
       }
     },
     {
+      "id": "platform.feedback",
+      "title": "GitHub插件缺口反馈",
+      "parent": "platform.updream",
+      "source": {
+        "path": "references/github-feedback.md"
+      }
+    },
+    {
       "id": "platform.tools",
       "title": "完整工具参数目录",
       "parent": "platform.updream",
