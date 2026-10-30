@@ -155,6 +155,89 @@ class PerformanceChecks(unittest.TestCase):
         self.data['dialogue'] = [first, second]
         self.assertIn('DIALOGUE_ORDER', self.codes())
 
+    def set_dialogue_text(self, value):
+        self.data['source']['dialogue'][0]['text'] = value
+        self.data['dialogue'][0]['text'] = value
+
+    def split_segments(self, at):
+        self.data['segments'] = [
+            dict(id='SG01', start=0, end=at, handoff='start', start_state='before', end_state='ongoing'),
+            dict(id='SG02', start=at, end=7, handoff='continue', start_state='ongoing', end_state='after'),
+        ]
+
+    def two_spoken_sentences(self):
+        first = copy.deepcopy(self.data['dialogue'][0])
+        second = copy.deepcopy(first)
+        first.update(text='妈。', start=1, end=2)
+        second.update(text='我陪你。', start=4, end=5)
+        self.data['dialogue'] = [first, second]
+        self.data['source']['dialogue'] = [
+            {key: line[key] for key in ('speaker_id', 'text', 'mode')}
+            for line in self.data['dialogue']
+        ]
+
+    def test_matching_source_and_compiled_fragments_are_rejected(self):
+        for value in ['就这样，北京春播、', '等你回来，', '等你回来；', '等你回来：',
+                      '等你回来', '收益增长13.6%', '等等……', '等等...', '等等—', '等等--']:
+            with self.subTest(text=value):
+                self.set_dialogue_text(value)
+                self.assertIn('SENTENCE_BOUNDARY', self.codes())
+
+    def test_sentence_endings_quotes_and_decimal_are_accepted(self):
+        for value in ['等你回来。', '你回来吗？', '等你回来！', 'Come back.', 'Will you?',
+                      'Come back!', '“等你回来。”', '（等你回来。）', '收益增长13.6%。',
+                      'Growth is 13.6%.', '真的吗？！', 'Wait…really!', '等你回来。\n']:
+            with self.subTest(text=value):
+                self.set_dialogue_text(value)
+                self.assertEqual(self.check()['errors'], [])
+
+    def test_leading_decimal_is_not_a_sentence_boundary(self):
+        for value in ['It takes .5 seconds.', 'The change is -.5 percent.',
+                      'The change is +.5 percent.', 'The probability is (.5).']:
+            with self.subTest(text=value):
+                self.set_dialogue_text(value)
+                self.assertEqual(self.check()['errors'], [])
+
+    def test_each_spoken_text_unit_has_exactly_one_sentence(self):
+        for value in ['妈。我陪你。', 'Hello. Come back!', '你回来吗？快点！']:
+            with self.subTest(text=value):
+                self.set_dialogue_text(value)
+                self.assertIn('SENTENCE_COUNT', self.codes())
+
+    def test_source_fragment_is_checked_independently_of_compiled_text(self):
+        self.data['source']['dialogue'][0]['text'] = '就这样，北京春播、'
+        codes = self.codes()
+        self.assertIn('SENTENCE_BOUNDARY', codes)
+        self.assertIn('DIALOGUE_CHANGED', codes)
+
+    def test_segment_cannot_split_a_spoken_sentence(self):
+        self.split_segments(4)
+        self.assertIn('DIALOGUE_SPLIT', self.codes())
+
+    def test_segment_boundary_at_speech_endpoint_is_allowed(self):
+        for at in [2.4, 5.5]:
+            with self.subTest(at=at):
+                self.split_segments(at)
+                self.assertEqual(self.check()['errors'], [])
+
+    def test_one_segment_cannot_mix_multiple_spoken_sentences(self):
+        self.two_spoken_sentences()
+        self.assertIn('SEGMENT_SENTENCES', self.codes())
+
+    def test_one_shot_can_have_sentences_in_different_segments(self):
+        self.two_spoken_sentences()
+        self.split_segments(3)
+        report = self.check()
+        self.assertEqual(report['errors'], [])
+        self.assertEqual(report['status'], 'needs_review')
+        self.assertEqual(report['semantic_review']['status'], 'pending')
+
+    def test_silent_action_segments_need_no_spoken_sentence(self):
+        self.data['source']['dialogue'] = []
+        self.data['dialogue'] = []
+        self.split_segments(4)
+        self.assertEqual(self.check()['errors'], [])
+
 
 if __name__ == '__main__':
     unittest.main()

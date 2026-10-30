@@ -19,6 +19,8 @@
 
 新镜头用`updream_reuse_assets {workspaceId,tabId,nodeId,hashes}`，hashes按意图顺序指定。文件内容相同即使改名也只上传一次；缓存按项目隔离，复用前materials.get核对仍存活且URL一致，不自动重传失效素材。缓存位于插件私有.local/assets，不进入发布包。连线不证明提示词编号、音频、报价和专用首帧已正确。
 
+上传／复用得到画布源节点后，继续按[画布资产节点命名与验收](updream-mcp.md#画布资产节点命名与验收)检查`binding.sources`中的人物、场景等节点，必要时安全改名并读回，将真实名称与nodeId记入现有资产映射。不要把自动沿用的文件名、上传verified或binding.verified当作命名验收；仅上传素材库的情况留到节点实际创建后处理。
+
 ## 失败与交接
 
 一次调用不具备事务性；失败读取details.phase/completed/stoppedAt/remaining/currentUploadedReceipt。已成功的素材、节点、连线不回滚。UNKNOWN_OUTCOME或writeMayHaveExecuted时先核对真实素材库/画布，不能直接重跑整批；原有工作区未知结果锁仍有效。当前项有回执但读回失败时保留assetId/URL用于核对，不能将其当作已验证完成。

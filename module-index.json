@@ -17,6 +17,7 @@
       "source": {
         "path": "references/workflow.md",
         "sections": [
+          "## 制作阶段与审核顺序",
           "## 首先识别任务与镜头边界",
           "## 风格与情绪先从剧情判断",
           "## 操作边界与状态"
@@ -45,6 +46,7 @@
         "sections": [
           "## 使用方式与控制分层",
           "## 每镜必须落到的字段",
+          "## 空间可行性：先确认机位放得下",
           "## 联合质检与失败回退"
         ]
       }
@@ -245,6 +247,7 @@
         "sections": [
           "## 从剧情编译，不按效果名称自动提交",
           "## 输入、编译与交付字段",
+          "## 转场改版与逐项落实",
           "## 关键帧、依赖与失败回退"
         ]
       }
@@ -344,7 +347,7 @@
       "id": "storyboard",
       "title": "完整专业分镜及全部交付分支",
       "parent": "direction",
-      "summary": "完整脚本必选；各专业分支合流，保留全部表格与每镜完整提示词",
+      "summary": "完整脚本必选；专业分支合流到核心主表，保留完整视频词、最终参考节点和必要附表",
       "source": {
         "path": "references/director.md"
       },
@@ -393,6 +396,15 @@
       }
     },
     {
+      "id": "organization",
+      "title": "项目目录整理、素材追溯与回收恢复",
+      "parent": "production",
+      "requires": ["records"],
+      "source": {
+        "path": "references/project-organization.md"
+      }
+    },
+    {
       "id": "previs",
       "title": "预演分支",
       "parent": "production"
@@ -403,7 +415,8 @@
       "parent": "previs",
       "source": {
         "path": "references/first-frame-previz.md"
-      }
+      },
+      "requires": ["character-assets", "performance", "expression-assets", "execution"]
     },
     {
       "id": "previs.3d",
@@ -420,6 +433,7 @@
       "source": {
         "path": "references/generation.md",
         "sections": [
+          "## 视频提示词以已审核Excel为唯一执行来源",
           "## 视觉参数如何传给生成工具",
           "## 表演包的实际适配",
           "## 白模预演与正式首帧分开",
@@ -429,22 +443,53 @@
       }
     },
     {
+      "id": "character-assets",
+      "title": "人物资产双参考五视图、收图与审图",
+      "parent": "production",
+      "source": {
+        "path": "references/character-assets.md"
+      }
+    },
+    {
+      "id": "expression-assets",
+      "title": "按剧情生成、复用与绑定表情参考",
+      "parent": "production",
+      "source": {
+        "path": "references/expression-assets.md"
+      },
+      "requires": ["character-assets", "performance"]
+    },
+    {
+      "id": "execution",
+      "title": "人物表情附件与转场执行证据检查",
+      "parent": "production",
+      "source": {
+        "path": "references/execution-checks.md"
+      }
+    },
+    {
       "id": "generation",
       "title": "模型能力、输入、生成与检查",
       "parent": "production",
       "source": {
         "path": "references/generation.md",
         "sections": [
+          "## 资产缺口自动补齐",
           "## 生图输入的职责",
           "## 先探测视频能力",
           "## 路线选择",
           "## 高级镜头语言的能力适配",
+          "## 转场的生成与剪辑分工",
           "## 检查、修复和交付"
         ]
       },
       "requires": [
         "prompts",
-        "budget"
+        "budget",
+        "character-assets",
+        "expression-assets",
+        "transitions",
+        "execution"
       ]
     },
     {
@@ -499,7 +544,8 @@
           "## 交付前检查",
           "## 逐镜交付逐项核对"
         ]
-      }
+      },
+      "requires": ["execution"]
     },
     {
       "id": "policy",
@@ -526,6 +572,22 @@
       "id": "platform",
       "title": "平台连接与节点操作",
       "parent": "aigc"
+    },
+    {
+      "id": "platform.jimeng",
+      "title": "即梦页面、画布与协作",
+      "parent": "platform",
+      "source": {
+        "path": "references/jimeng-mcp.md"
+      }
+    },
+    {
+      "id": "platform.libtv",
+      "title": "LibTV官方Remote MCP与素材复用",
+      "parent": "platform",
+      "source": {
+        "path": "references/libtv-mcp.md"
+      }
     },
     {
       "id": "platform.updream",

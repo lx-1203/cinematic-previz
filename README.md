@@ -2,11 +2,11 @@
 
 作者：**星迹**。技术调用名：**cinematic-previz**。
 
-把专业分镜、逐镜首帧白模生图、按需Blender预演、正式首帧、真实尾帧接力、视频生成与剪辑连起来。镜头变化按叙事选择；连续长镜头超过单次生成时长时，直接用真实尾帧同机位续接。
+按[十步制作流程](references/workflow.md#制作阶段与审核顺序)先交传统文档剧本供用户审核，通过后制作Excel多列分镜、人物/场景/表情/物品资产和逐镜首帧；含图Excel获审核后再上传、连接节点，视频提示词逐字取自表内，不私自现写。尾帧未要求不自主生成；最后用OpenCut剪辑、配置字幕并导出，字幕默认宋体、白字黑边。已有通过版本沿用，不重复重做；当前“仅草稿/不提交”等限制继续有效。
 
 ## 版本与更新记录
 
-当前发布版本：**v2026.10.21.7**。功能变化见 [更新记录](CHANGELOG.md)；Git 标签固定对应发布提交，历史版本可通过标签取得。同步脚本的 SHA256 revision 用于核对具体文件内容，不替代发布版本号。
+当前本机技能内容版本：**0.6.0**；[release.json](release.json) 保留技能与 Updream MCP Bridge **0.6.0** 的历史配对声明，不能据此证明 Bridge 源码完整、Git 标签、远端提交或安装包已经发布。功能变化见 [更新记录](CHANGELOG.md)，旧日期编号保留。同步脚本的 SHA256 revision 核对本机具体内容；GitHub 备份另须取得远端 commit 与文件核验回执，见 [维护更新收尾](references/maintenance-release.md)。
 
 ## 普通用户：下载即可安装，不需要开发者项目
 
@@ -36,8 +36,14 @@
 | 白模实际渲染 | 本机 Blender 或可用桥接 |
 | 实际生图/视频 | 当前宿主已提供的相应能力；平台和账号由使用者选择 |
 | Updream 节点操作 | 单独安装并连接 Updream MCP Bridge，仅选择此平台时需要 |
+| 即梦页面、画布草稿与协作 | 同一插件的即梦适配及逐站授权；先读 [即梦指南](references/jimeng-mcp.md)，按实际支持范围使用 |
+| LibTV 素材复用与画布节点 | 复用宿主已授权的 LibTV 官方 Remote MCP；先读 [LibTV 指南](references/libtv-mcp.md)，按当前能力上传、整理与读回，不自动生成 |
 
 缺少某项能力时明确标记该阶段未执行，继续能独立完成的部分；不要把规划文件称为已生成影片。若用户的 AGENTS 明确要求每次先执行同步检查，优先遵循该要求，失败不能跳过。
+
+LibTV 是本技能新增的平台路由，账号与 OAuth 由宿主管理，未连接时按指南使用官方插件安装路线。该路由不表示 Updream 浏览器 Bridge 源码、配套安装包或实站验收已完成 LibTV 集成；发布号与配套版本保持 0.6.0。
+
+人物资产新建或更新使用 [双参考五视图规范](references/character-assets.md)：图1负责面部，图2负责整套穿搭，缺少时先向用户索要。沿用已明确指定的参考无需重复上传；批量更新保留旧图并逐项记录生成与审图状态。
 
 ## 独立模式与可选项目同步
 
@@ -50,7 +56,7 @@ python "<实际技能目录>/scripts/sync_from_project.py"
 | 条件/返回值 | 意义 |
 | --- | --- |
 | 没有注册文件，也未显式指定来源；current + standalone | 当前本地包可以独立使用，不写文件、不联网；revision 只是此包内容指纹，不表示远端最新 |
-| 已注册来源；current + project | 安装内容与本次成功检查的来源项目一致 |
+| 已注册来源；current + project | 安装内容与本次成功检查的本机来源项目一致，不表示 GitHub 已更新 |
 | updated + project | 已同步；重新读取返回的 skill_file；若脚本自身更新，再运行一次 |
 | update_available | 只比较模式发现更新，尚未应用 |
 | LOCAL_CONFLICT / BUSY / 来源丢失 / 配置损坏 | 报告具体错误，保留本地修改和活锁；已经注册的用户不会自动降级绕过 |
@@ -65,7 +71,7 @@ python "<来源技能目录>/scripts/sync_from_project.py" --project-root "<保�
 
 注册使用真实路径，私有 `.skill-source.json`、备份和锁只留在安装端，不进入下载包。`--project-root` 或 `CINEMATIC_PREVIZ_PROJECT` 是显式来源选择；不传则读取已有注册。更换来源需要显式注册，已有冲突仍要先处理。不能自动把当前工作目录当作开发者项目。
 
-版本用 SHA256 内容指纹；本地独立修改触发冲突保护，更新先备份到 `.skill-backups/`。`--check` 只比较，不写文件。脚本不会自动 git pull/push；来源目录内容也不等于远端最新。采用远端更新时先正常拉取合并，再同步。确认没有活跃更新进程之前不能移除更新锁。
+同步使用 SHA256 内容指纹核对文件；本地独立修改触发冲突保护，更新先备份到 `.skill-backups/`。`--check` 只比较，不写文件。普通调用的脚本不会自动 git pull/push，`remote_checked=false` 只说明本机同步未检查远端；采用远端更新时先正常拉取合并，再同步。维护源码修改后的 GitHub 备份是独立的必做收尾：沿用既有发布授权完成精确范围提交、非强推上传和远端读回；阻塞时记录 `backup_pending`，不能把本机同步当成全部完成。普通下载用户不因此被要求向作者仓库推送，具体流程见 [维护更新收尾](references/maintenance-release.md)。确认没有活跃更新进程之前不能移除更新锁。
 
 ## 内容入口
 
@@ -75,6 +81,7 @@ python "<来源技能目录>/scripts/sync_from_project.py" --project-root "<保�
 | [树状模块读取](references/module-loading.md) | 模块分类、横向依赖组合、预制Python读取器及完整交付要求 |
 | [模块索引](module-index.json) | 分类树和章节/依赖的单一配置 |
 | [完整工作流与检查](references/workflow.md) | 保留原有制作链、预算、真实尾帧与逐镜完整交付规则 |
+| [维护更新收尾与 GitHub 备份](references/maintenance-release.md) | 普通调用与维护上传分工、沿用发布授权、远端核验回执及技能／完整插件范围 |
 | [视觉风格](references/visual-style.md) | 从剧情推导风格与情绪；构图、色调、配色、材质及六项参数包 |
 | [导演设计](references/director.md) | 专业分镜、逐镜完整提示词表、景别、机位、运镜和剪辑理由 |
 | [高级镜头语言库](references/camera-language.md) | 16类机位、对焦与时间语言，完整提示词、复合镜头入表及质检/回退 |
@@ -86,6 +93,8 @@ python "<来源技能目录>/scripts/sync_from_project.py" --project-root "<保�
 | [尾帧接力](references/frame-handoff.md) | 换机位、长镜头续接、实际剪辑出点 |
 | [生成适配](references/generation.md) | 图片职责与目标工具能力 |
 | [Updream 插件](references/updream-mcp.md) | 选用该平台时再读，接口以实际连接为准 |
+| [即梦插件](references/jimeng-mcp.md) | 页面识别、画布批量操作、协作和已实现能力边界；节点ID不沿用Updream数值语义 |
+| [LibTV 官方 MCP](references/libtv-mcp.md) | 官方连接、精确项目与右栏画布交接、既有素材复用、节点整理及仅草稿边界 |
 | [初始提示词](references/updream-prompts.md) | 节点任务和跨聊天协作 |
 | [来源和许可](references/sources.md) | 上游来源与保留的许可 |
 

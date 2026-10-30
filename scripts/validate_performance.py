@@ -9,6 +9,40 @@ ABSTRACT_WORDS = ('难过', '开心', '生气', '委屈', '悲伤', '激动', '�
 FACE_CHANNELS = {'eyes', 'brows', 'mouth'}
 VOICE_KEYS = {'volume', 'rate', 'pause', 'airiness', 'ending'}
 MODES = {'on_screen', 'off_screen', 'voiceover', 'system'}
+SENTENCE_ENDINGS = frozenset('。？！.!?')
+SENTENCE_CLOSERS = '\"\'”’」』）》】〕〉›»)]}'
+
+
+def validate_sentence(value, path):
+    """Check one punctuated sentence, not semantic completeness; never alter text."""
+    if not isinstance(value, str) or not value.strip():
+        return [{'code': 'SCHEMA', 'path': path, 'message': 'Expected a nonempty string'}]
+    body = value.rstrip().rstrip(SENTENCE_CLOSERS + ' \t\r\n')
+    count, last_end, index = 0, -1, 0
+    while index < len(body):
+        if body[index] not in SENTENCE_ENDINGS:
+            index += 1
+            continue
+        end = index + 1
+        while end < len(body) and body[end] in SENTENCE_ENDINGS:
+            end += 1
+        punctuation = body[index:end]
+        decimal = (punctuation == '.' and end < len(body) and body[end].isdigit()
+                   and (index == 0 or body[index - 1].isdigit()
+                        or body[index - 1].isspace() or body[index - 1] in '+-([（='))
+        ellipsis = len(punctuation) > 1 and set(punctuation) == {'.'}
+        if not decimal and not ellipsis:
+            count += 1
+            last_end = end
+        index = end
+    errors = []
+    if last_end != len(body) or not any(char.isalnum() for char in body):
+        errors.append({'code': 'SENTENCE_BOUNDARY', 'path': path,
+                       'message': 'End each spoken unit with 。？！.!?; fragments, ellipses and dashes require revision or human review. Do not add punctuation to the source automatically.'})
+    if count > 1:
+        errors.append({'code': 'SENTENCE_COUNT', 'path': path,
+                       'message': 'Use exactly one punctuated sentence per spoken unit; preserve source text when separating sentences.'})
+    return errors
 
 
 def finite_number(value):
@@ -163,6 +197,7 @@ def validate(data):
     original_lines = []
     for i, raw in enumerate(original):
         line = obj(raw, 'source.dialogue.' + str(i))
+        errors.extend(validate_sentence(line.get('text'), 'source.dialogue.' + str(i) + '.text'))
         original_lines.append((line.get('speaker_id'), line.get('text'), line.get('mode')))
     compiled_lines = []
     spoken = []
@@ -171,6 +206,8 @@ def validate(data):
         path = 'dialogue.' + str(i)
         aid = actor_ref(line.get('speaker_id'), path + '.speaker_id')
         content = text(line.get('text'), path + '.text')
+        if content:
+            errors.extend(validate_sentence(content, path + '.text'))
         mode = line.get('mode')
         if not isinstance(mode, str) or mode not in MODES:
             issue('SCHEMA', path + '.mode', 'Unknown dialogue mode')
@@ -201,6 +238,20 @@ def validate(data):
         if caps.get('verified') is True and limit is not None and interval(segment, path):
             if segment['end'] - segment['start'] > limit + 1e-6:
                 issue('SEGMENT_LIMIT', path, 'Segment exceeds the verified model duration limit')
+        start, end = segment.get('start'), segment.get('end')
+        if not (finite_number(start) and finite_number(end) and end > start):
+            continue
+        spoken_units = 0
+        for j, line in enumerate(dialogue):
+            speech_start, speech_end = line.get('start'), line.get('end')
+            if not (finite_number(speech_start) and finite_number(speech_end) and speech_end > speech_start):
+                continue
+            if speech_start < end - 1e-6 and speech_end > start + 1e-6:
+                spoken_units += 1
+                if speech_start < start - 1e-6 or speech_end > end + 1e-6:
+                    issue('DIALOGUE_SPLIT', path, 'Segment boundary splits dialogue.' + str(j) + '; keep the entire spoken sentence in one segment')
+        if spoken_units > 1:
+            issue('SEGMENT_SENTENCES', path, 'Each segment may contain at most one spoken sentence; use separate segments within the same shot')
     prompt = obj(data.get('positive_prompt'), 'positive_prompt')
     action_prompt = observable(prompt.get('action'), 'positive_prompt.action')
     negatives = items(data.get('negative_prompt'), 'negative_prompt')

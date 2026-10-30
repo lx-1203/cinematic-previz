@@ -109,6 +109,66 @@ class ModuleReaderTests(unittest.TestCase):
         self.assertNotIn('performance', ids)
         self.assertIn('core', ids)
 
+    def test_character_assets_route_includes_full_reference_and_review_rules(self):
+        out = self.invoke('read', 'character-assets', '--json')
+        self.assertEqual(out.returncode, 0, out.stderr)
+        data = json.loads(out.stdout)
+        ids = {n['id'] for n in data['modules']}
+        self.assertEqual(ids, {'core', 'character-assets'})
+        body = next(n['content'] for n in data['modules'] if n['id'] == 'character-assets')
+        self.assertIn('## 先收集两张职责明确的参考图', body)
+        self.assertIn('图1作为唯一面部参考图', body)
+        self.assertIn('图2作为唯一服装搭配参考图', body)
+        self.assertIn('2px宽、#E2E2E2', body)
+        self.assertIn('## 批量更新与实际审图', body)
+
+    def test_first_frame_and_storyboard_load_character_expression_and_execution_rules(self):
+        for route in ('previs.start', 'storyboard'):
+            with self.subTest(route=route):
+                out = self.invoke('read', route, '--json')
+                self.assertEqual(out.returncode, 0, out.stderr)
+                ids = [n['id'] for n in json.loads(out.stdout)['modules']]
+                for required in ('character-assets', 'performance', 'expression-assets', 'execution'):
+                    self.assertEqual(ids.count(required), 1, (route, required, ids))
+                self.assertNotIn('platform.tools', ids)
+
+    def test_expression_assets_are_discoverable_without_loading_video_workflow(self):
+        out = self.invoke('read', 'expression-assets', '--json')
+        self.assertEqual(out.returncode, 0, out.stderr)
+        ids = {n['id'] for n in json.loads(out.stdout)['modules']}
+        self.assertTrue({'core', 'character-assets', 'performance', 'expression-assets'}.issubset(ids))
+        self.assertNotIn('workflow', ids)
+        self.assertNotIn('platform.updream', ids)
+
+    def test_generation_routes_include_transition_execution_division(self):
+        for route in ('generation', 'workflow'):
+            with self.subTest(route=route):
+                out = self.invoke('read', route, '--json')
+                self.assertEqual(out.returncode, 0, out.stderr)
+                modules = json.loads(out.stdout)['modules']
+                ids = {n['id'] for n in modules}
+                self.assertTrue({'transitions', 'expression-assets', 'execution'}.issubset(ids), ids)
+                generation = next(n for n in modules if n['id'] == 'generation')['content']
+                self.assertIn('## 转场的生成与剪辑分工', generation)
+                self.assertNotIn('transitions.whip', ids)
+
+    def test_delivery_and_transition_leaf_load_execution_or_revision_contract(self):
+        out = self.invoke('read', 'delivery', '--json')
+        self.assertEqual(out.returncode, 0, out.stderr)
+        self.assertIn('execution', {n['id'] for n in json.loads(out.stdout)['modules']})
+        out = self.invoke('read', 'transitions.whip', '--json')
+        self.assertEqual(out.returncode, 0, out.stderr)
+        common = next(n for n in json.loads(out.stdout)['modules'] if n['id'] == 'transitions')
+        self.assertIn('## 转场改版与逐项落实', common['content'])
+
+    def test_generation_route_cannot_skip_character_reference_requirements(self):
+        for route in ('generation', 'workflow'):
+            with self.subTest(route=route):
+                out = self.invoke('read', route, '--json')
+                self.assertEqual(out.returncode, 0, out.stderr)
+                ids = [n['id'] for n in json.loads(out.stdout)['modules']]
+                self.assertEqual(ids.count('character-assets'), 1)
+
     def test_real_orbit_slice_excludes_sibling_full_prompt(self):
         out = self.invoke('read', 'camera.orbit', '--json')
         self.assertEqual(out.returncode, 0, out.stderr)
