@@ -33,7 +33,7 @@ python "<skill-dir>/scripts/sync_from_project.py"
 星迹的AIGC
 ├─共享原稿、操作边界与状态规则
 ├─导演：风格 / 分镜 / 运镜 → 16类方法 / 转场 → 6类方法 / 打光 / 表演
-├─制作：人物双参考五视图 / 表情资产 / 首帧与三维预演 / 提示词 / 生成 / 执行检查 / 接力 / 交付 / 目录整理与回收
+├─制作：人物双参考五视图 / 标准表情合集 / 强参考物品资产 / 首帧与三维预演 / 提示词 / 生成 / 执行检查 / 接力 / 交付 / 目录整理与回收
 ├─平台：Updream工作区 / 上传 / 工具 / 维护；即梦页面 / 画布 / 协作；LibTV官方Remote MCP / 素材复用
 └─资料：完整示例 / 来源 / 许可
 ~~~
@@ -46,6 +46,7 @@ python "<skill-dir>/scripts/read_modules.py" read storyboard camera.rise-orbit
 python "<skill-dir>/scripts/read_modules.py" read camera.orbit lighting
 python "<skill-dir>/scripts/read_modules.py" read character-assets
 python "<skill-dir>/scripts/read_modules.py" read expression-assets
+python "<skill-dir>/scripts/read_modules.py" read prop-assets
 python "<skill-dir>/scripts/read_modules.py" read previs.start
 python "<skill-dir>/scripts/read_modules.py" read organization
 python "<skill-dir>/scripts/read_modules.py" read platform.upload
@@ -55,7 +56,7 @@ python "<skill-dir>/scripts/read_modules.py" read platform.libtv
 
 完整分镜选storyboard，完整影片制作选workflow，动作/风格/平台单项查询选相应节点。storyboard必须展开风格、摄影、打光、表演、首帧、完整提示词、连续性和交付检查；有具体运镜或转场时追加对应叶节点。不得用一个单项查询包冒充完整脚本。
 
-仅制作或修订首帧也读previs.start，它自动带入人物阶段资产、表演、[表情资产](references/expression-assets.md)和[执行检查](references/execution-checks.md)。先按镜号解析已选人物阶段及所需表情，补齐并审图后实际附入生图工具；不能只写资产路径或沿用设定图的中性脸。调用前核对first_frame输入，调用后核对真实附件并审图；continue仍原样用真实出点帧。转场按[改版落实规则](references/transitions.md#转场改版与逐项落实)更新两侧素材、Excel和剪辑任务，交付按delivery检查逐项核对，再回放最终输出。机械检查不代替实际表情和转场验收，也不授予提交权限。
+仅制作或修订首帧也读previs.start，它自动带入人物阶段资产、表演、[标准表情合集](references/expression-assets.md)、[强参考物品](references/prop-assets.md)和[执行检查](references/execution-checks.md)。先逐镜核对剧本时期、年龄阶段、衣装及活动／身体状态，选用匹配人物资产；同人同阶段表情标准化为一张覆盖喜怒哀乐的合集，选用格位入镜；文字、书籍、地图等先有独立物品图并设计读者方向，再补齐、审图并真实附入生图工具；不能只写资产路径或沿用设定图的中性脸。调用前核对first_frame输入，调用后核对真实附件并审图；continue仍原样用真实出点帧。转场按[改版落实规则](references/transitions.md#转场改版与逐项落实)更新两侧素材、Excel和剪辑任务，交付按delivery检查逐项核对，再回放最终输出。机械检查不代替实际表情和转场验收，也不授予提交权限。
 
 整理项目、分类素材、归档或回收恢复时选 `organization`（[目录整理与项目回收站](references/project-organization.md)），自动带入 `records`。按实际文件展示架构；以制作登记解析当前版本，保留活跃源路径与素材来源，区分浏览快照、历史版本和可恢复批次。仅整理不触发制作、生成或自动永久删除。
 

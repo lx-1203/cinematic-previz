@@ -416,7 +416,7 @@
       "source": {
         "path": "references/first-frame-previz.md"
       },
-      "requires": ["character-assets", "performance", "expression-assets", "execution"]
+      "requires": ["character-assets", "performance", "expression-assets", "execution", "prop-assets"]
     },
     {
       "id": "previs.3d",
@@ -452,12 +452,20 @@
     },
     {
       "id": "expression-assets",
-      "title": "按剧情生成、复用与绑定表情参考",
+      "title": "同人物阶段标准九宫格表情合集",
       "parent": "production",
       "source": {
         "path": "references/expression-assets.md"
       },
       "requires": ["character-assets", "performance"]
+    },
+    {
+      "id": "prop-assets",
+      "title": "强参考物品独立图与读向审查",
+      "parent": "production",
+      "source": {
+        "path": "references/prop-assets.md"
+      }
     },
     {
       "id": "execution",
@@ -488,6 +496,7 @@
         "budget",
         "character-assets",
         "expression-assets",
+        "prop-assets",
         "transitions",
         "execution"
       ]
