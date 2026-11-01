@@ -35,3 +35,35 @@ previs.start即使单独读取也包含character-assets、performance、expressi
 module-index.json的version为格式版本1；root为唯一根节点ID；required为每次read都携带且有正文的共享节点。nodes按稳定展示顺序保存id、title、parent，可选requires和source。source.path为技能包内相对路径，source.sections可选、必须是源文件中唯一出现的完整ATX标题行，例如“## M03｜360°环绕”；不填sections才返回整个文件。
 
 章节包含其子标题内容，截止下一个同级或更高级标题，代码围栏中的伪标题不参与定位；不要用行号当稳定接口。保持现有来源单一，不在索引写入正文副本。变更后运行check及scripts/test_read_modules.py，并检查受影响实际读取组合。无Python时按此相同依赖关系人工读取并明确未运行自动校验。
+
+
+## 公共规则的正式来源
+
+规则正文只在下表位置维护；module-index.json的rule_sources保存对应模块与精确标题，供跨文档检查。入口给摘要，工作流说何时执行，记录文档说保存什么，平台文档说如何操作；这些位置不得复制完整政策。操作点保留简短提醒，实际执行提示仍须独立展开必要条件。
+
+| 规则 | 正式正文 | 模块 |
+| --- | --- | --- |
+| 任务范围、状态、暂停与重试 | [共享边界](core.md) | core |
+| 制作顺序与两次用户审核 | [阶段顺序](workflow.md#制作阶段与审核顺序) | stages |
+| 生成/剪辑时长及完整句 | [时间与完整句](timing.md) | timing |
+| 声音组成、音乐与口型职责 | [声音规范](sound.md) | sound |
+| 当前词来源、修改与原词执行 | [提示词规范](prompts.md) | prompts |
+| 单一主表与交付内容 | [导演主表](director.md#默认交付专业分镜表) | storyboard |
+| 真实末态和接力输入 | [尾帧接力](frame-handoff.md) | handoff |
+| 预算和付费授权 | [预算](workflow.md#视频项目预算) | budget |
+| 模型能力、附件和生成检查 | [生成适配](generation.md) | generation |
+| 项目字段与真实执行证据 | [制作记录](production-contract.md) | records |
+
+只查一种方法时加载短core和该方法，按需追加专项；进入制作时加载stages及相应正式规则。storyboard仍加载全部必需专业分支，generation通过prompts带入stages、timing、sound。分类与模块ID保持兼容，不为缩短入口删除交付职责。
+
+旧generation提示词标题和workflow完整句标题保留迁移入口；已有外部链接仍能定位，新链接直接指向正式正文。迁移入口只给链接，不存第二份规则。维护者修改政策时检查rule_sources及受影响示例，不把历史CHANGELOG当现行规范。
+
+## 跨文档验证
+
+```text
+python "<skill-dir>/scripts/read_modules.py" check --json
+python "<skill-dir>/scripts/validate_documents.py"
+python -B -m unittest discover -s "<skill-dir>/scripts" -p "test_*.py"
+```
+
+validate_documents检查包内Markdown路径/标题、正式规则来源、两个当前示例中generation_seconds/edit_seconds的范围关系与声明成片总长，并用实际时长校验器核对项目JSON的generation_segments接口及引用。它不执行生成、不验证画面，也不证明没有所有语义重复；版本、审核、实际接点和音画仍按对应流程人工验收。

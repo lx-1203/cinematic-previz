@@ -98,7 +98,7 @@ python -X utf8 "<skill-dir>/scripts/validate_performance.py" "<project>/directio
 python -X utf8 -m unittest discover -s "<skill-dir>/scripts" -p "test_validate_performance.py"
 ~~~
 
-CLI输出JSON；退出0仅表示本次自动结构检查通过，1为需修订，2为输入文件/JSON读取失败。源文件不被改写。自动检查时间连续覆盖、有限数值、角色引用、可见通道声明、逐字台词、完整单句标点边界、发声原句不跨生成片段且每段至多一句、每拍单个主动作对象、至少两个语音参数、负向约束存在、已核实时长上限和规划状态承接。计数由数据重算，不接受自报质检数字。节点列表另用 `validate_nodes.py` 检查，格式及完整规则见[完整句边界](workflow.md#剧本拆分的完整句边界)；标点通过不证明语义完整或真实语速可说完。
+CLI输出JSON；退出0仅表示本次自动结构检查通过，1为需修订，2为输入文件/JSON读取失败。源文件不被改写。自动检查时间连续覆盖、有限数值、角色引用、可见通道声明、逐字台词、完整单句标点边界、发声原句不跨生成片段且每段至多一句、每拍单个主动作对象、至少两个语音参数、负向约束存在、已核实时长上限和规划状态承接。计数由数据重算，不接受自报质检数字。节点列表另用 `validate_nodes.py` 检查，格式及完整规则见[完整句边界](timing.md#完整句与发声单元)；标点通过不证明语义完整或真实语速可说完。
 
 报告automatic_checks=passed仍返回status=needs_review，semantic_review=pending，video_review=not_run。一个动作ID里藏了多个独立动词、两个节拍实际没有信息变化、对白时长不自然、嘴角被挡住等，不能靠结构检查证明。语义审读要逐项给判断和依据；生成后再逐段回放，检查接触、眼线、动作重复、口型、声音和身份，不伪称已看过视频。
 

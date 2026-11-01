@@ -99,3 +99,8 @@ python "<来源技能目录>/scripts/sync_from_project.py" --project-root "<保�
 | [来源和许可](references/sources.md) | 上游来源与保留的许可 |
 
 有付费生成需求时遵循用户实际授权范围。源代码与流程公开不表示底层生成服务免费，也不包含任何人的登录态、素材或凭证。
+
+
+## 规则归属与整理后的入口
+
+SKILL.md仅保留同步、范围、路由和维护入口；分类及依赖仍由module-index.json维护。公共规则正式来源见 [规则归属](references/module-loading.md#公共规则的正式来源)。提示词正文已独立到 [prompts](references/prompts.md)，时间与完整句见 [timing](references/timing.md)，声音见 [sound](references/sound.md)。旧模块ID和迁移标题保留。完整分镜与实际制作依赖不删减，单项查询不自动读取整套制作流程。

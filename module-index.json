@@ -15,13 +15,7 @@
       "title": "共享原稿、边界与状态规则",
       "parent": "aigc",
       "source": {
-        "path": "references/workflow.md",
-        "sections": [
-          "## 制作阶段与审核顺序",
-          "## 首先识别任务与镜头边界",
-          "## 风格与情绪先从剧情判断",
-          "## 操作边界与状态"
-        ]
+        "path": "references/core.md"
       }
     },
     {
@@ -341,7 +335,11 @@
       "parent": "direction",
       "source": {
         "path": "references/performance-compiler.md"
-      }
+      },
+      "requires": [
+        "timing",
+        "sound"
+      ]
     },
     {
       "id": "storyboard",
@@ -360,7 +358,10 @@
         "prompts",
         "continuity",
         "delivery",
-        "transitions"
+        "transitions",
+        "stages",
+        "timing",
+        "sound"
       ]
     },
     {
@@ -384,7 +385,10 @@
         "generation",
         "handoff",
         "budget",
-        "runtime"
+        "runtime",
+        "stages",
+        "timing",
+        "sound"
       ]
     },
     {
@@ -399,7 +403,9 @@
       "id": "organization",
       "title": "项目目录整理、素材追溯与回收恢复",
       "parent": "production",
-      "requires": ["records"],
+      "requires": [
+        "records"
+      ],
       "source": {
         "path": "references/project-organization.md"
       }
@@ -416,7 +422,14 @@
       "source": {
         "path": "references/first-frame-previz.md"
       },
-      "requires": ["character-assets", "performance", "expression-assets", "execution", "prop-assets"]
+      "requires": [
+        "character-assets",
+        "performance",
+        "expression-assets",
+        "execution",
+        "prop-assets",
+        "stages"
+      ]
     },
     {
       "id": "previs.3d",
@@ -431,16 +444,13 @@
       "title": "每镜完整提示词及适配规则",
       "parent": "production",
       "source": {
-        "path": "references/generation.md",
-        "sections": [
-          "## 视频提示词以已审核Excel为唯一执行来源",
-          "## 视觉参数如何传给生成工具",
-          "## 表演包的实际适配",
-          "## 白模预演与正式首帧分开",
-          "## 每镜完整提示词必须入表",
-          "## 每片段提示的内容"
-        ]
-      }
+        "path": "references/prompts.md"
+      },
+      "requires": [
+        "stages",
+        "timing",
+        "sound"
+      ]
     },
     {
       "id": "character-assets",
@@ -457,7 +467,10 @@
       "source": {
         "path": "references/expression-assets.md"
       },
-      "requires": ["character-assets", "performance"]
+      "requires": [
+        "character-assets",
+        "performance"
+      ]
     },
     {
       "id": "prop-assets",
@@ -529,7 +542,11 @@
       "parent": "production",
       "source": {
         "path": "references/ai-video-continuity.md"
-      }
+      },
+      "requires": [
+        "timing",
+        "sound"
+      ]
     },
     {
       "id": "budget",
@@ -554,7 +571,9 @@
           "## 逐镜交付逐项核对"
         ]
       },
-      "requires": ["execution"]
+      "requires": [
+        "execution"
+      ]
     },
     {
       "id": "policy",
@@ -714,6 +733,67 @@
       "source": {
         "path": "references/upstream-licenses.txt"
       }
+    },
+    {
+      "id": "stages",
+      "title": "制作阶段与用户审核",
+      "parent": "production",
+      "source": {
+        "path": "references/workflow.md",
+        "sections": [
+          "## 制作阶段与审核顺序"
+        ]
+      }
+    },
+    {
+      "id": "timing",
+      "title": "生成时长、剪辑时长与完整句",
+      "parent": "production",
+      "source": {
+        "path": "references/timing.md"
+      }
+    },
+    {
+      "id": "sound",
+      "title": "声音设计、音乐策略与人声职责",
+      "parent": "direction",
+      "source": {
+        "path": "references/sound.md"
+      }
     }
-  ]
+  ],
+  "rule_sources": {
+    "duration": {
+      "module": "timing",
+      "section": "## 生成片段与剪辑时长"
+    },
+    "sentence": {
+      "module": "timing",
+      "section": "## 完整句与发声单元"
+    },
+    "sound": {
+      "module": "sound",
+      "section": "## 声音组成与音乐策略"
+    },
+    "approval": {
+      "module": "stages",
+      "section": "## 制作阶段与审核顺序"
+    },
+    "prompt_execution": {
+      "module": "prompts",
+      "section": "## 视频提示词以已审核Excel为唯一执行来源"
+    },
+    "handoff": {
+      "module": "handoff",
+      "section": "## 交接源的真实性"
+    },
+    "budget": {
+      "module": "budget",
+      "section": "## 视频项目预算"
+    },
+    "delivery": {
+      "module": "storyboard",
+      "section": "## 默认交付专业分镜表"
+    }
+  }
 }
