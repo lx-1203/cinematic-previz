@@ -40,7 +40,7 @@ project/
 | 表演包 | shot_id/版本、source原意/逐字台词、推断、可见通道、逐拍触发/主动作ID/线索、语音时段/参数、负向、实际能力、片段起终状态；脚本重算报告、语义判断/依据、视频/口型/声音检查分别保存 | [表演](performance-compiler.md) |
 | 首帧白模 | shot_id/script_version、frame_role=start、source_kind=codex_imagegen_blockout、版本化文件/指纹、原始提示/输入职责、身份色映射、目视缺陷/未验证项；规划首帧、正式首帧和实际视频尾帧分别标记 | [首帧](first-frame-previz.md) |
 | 提示词历史 | shot_id/segment_id、type/version、完整正文、实际参考输入/职责、对应图片/视频版本、真实状态；编辑目标、重建/修订规划与真实调用分开，主表当前词来源关联 | [提示词](prompts.md#每镜完整提示词必须入表) |
-| 生成片段 | 所属镜头、segment ID、镜内时间区间、duration_seconds（生成时长）、实际剪辑保留范围/成片时长、首帧/引导片、路线/模型/提示文件、任务/视频版本/指纹、选版与检查 | [时间](timing.md)、[生成](generation.md) |
+| 生成片段 | generation_mode、任务segment/package ID，单镜logical_shot_id或多镜有序shot_ids、包内时间区间、duration_seconds（整次生成时长）、实际保留范围；多镜platform_limits及其能力来源/模型/模式/核实日期、完整词当前来源、首帧/参考/引导片、任务/视频版本/指纹、选版与检查 | [时间](timing.md)、[生成](generation.md) |
 | 转场 | transition_id/版本、前后镜/阶段、叙事联系/时空断点、机制/衔接模式、匹配锚点、选片入出点/时间基准/余量、两侧完整词/参考/负向/声音、剪辑/遮罩/白层/屏面合成与能力依赖；屏幕内媒体指纹、可用后续源区间和源到输出时间映射；各层验收分别保存 | [转场](transitions.md) |
 | 转场改版 | 受影响的前出/后入素材、Excel词、剪辑任务版本和最终输出；待素材/待剪辑/待验收/stale及当版结果，delivery报告和逐项回放证据 | [改版](transitions.md#转场改版与逐项落实) |
 | 接力 | 源segment/版本/指纹、真实尾帧/提取凭据、continue/reangle/cut/reset、状态清单、新机位来源、目标首帧/视频、依赖及复核 | [接力](frame-handoff.md) |
