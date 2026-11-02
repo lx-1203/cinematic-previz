@@ -28,7 +28,7 @@ description: Use when creating or revising 漫剧、短剧、导演分镜、Blen
 | 触发条件 | 读取模块 |
 | --- | --- |
 | 写/改视频提示词 | prompts；按正文里的写词/执行条件使用 |
-| 制作完整Excel分镜 | storyboard；[主表规范](references/director.md#默认交付专业分镜表) |
+| 制作/修改/交付Excel分镜 | storyboard；务必先盘点已有资产，将本包适用的实图、ID与版本填入主表；缺失/不适用写明原因，见[主表规范](references/director.md#默认交付专业分镜表) |
 | 查或改风格/表演/打光/声音 | 对应style / performance / lighting / sound |
 | 确定使用某种运镜/转场 | 对应camera.<方法> / transitions.<方法> |
 | 制作人物/表情/物品资产 | 对应character-assets / expression-assets / prop-assets |
