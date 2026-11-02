@@ -31,6 +31,8 @@ python "<实际skill目录>/scripts/sync_from_project.py"
 
 ## 按任务读取
 
+补充课堂分镜方法、检索60项镜头或处理节奏/资产版式/动作重叠时读[课堂方法补充](references/classroom-storyboard.md)（camera.classroom）：六类情境及术语按剧情选用，课件秒数与布局不覆盖现行朗读、15秒分包、分表和双参考五视图规则。
+
 分类、父子关系和跨分支依赖以 [module-index.json](module-index.json) 为唯一配置。运行读取器可自动带入core和必要依赖，不自动展开所有兄弟方法或所有平台。
 
 ```text

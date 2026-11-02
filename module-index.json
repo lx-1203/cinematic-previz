@@ -46,6 +46,14 @@
       }
     },
     {
+      "id": "camera.classroom",
+      "title": "课堂六类情境与60项镜头索引",
+      "parent": "camera",
+      "source": {
+        "path": "references/classroom-storyboard.md"
+      }
+    },
+    {
       "id": "camera.whip",
       "title": "M01｜甩镜",
       "parent": "camera",
