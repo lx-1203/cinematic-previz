@@ -91,24 +91,32 @@ def validate(tables):
     return {'status': 'valid' if not errors else 'invalid', 'errors': errors, 'shots': len(shots.get('逐镜脚本', [])), 'scope': 'Default sheet layout, header placement, nonempty design and ordered shot IDs; semantic and media checks remain separate.'}
 
 
-def validate_delivery(tables, prompt_mode='auto'):
-    """The delivery gate includes prose checks; layout-only validate is not enough."""
+def validate_delivery(tables, prompt_mode='multi_shot', check_timing=True, segment_seconds=15):
+    """Default delivery: layout, prose, 15-second packages and reading evidence."""
     from validate_prompt_format import validate_workbook
     report = validate(tables)
     prompts = validate_workbook(tables, prompt_mode)
     report['errors'].extend(prompts['errors'])
     report['status'] = 'invalid' if report['errors'] else 'valid'
     report['prompt_format'] = {'status': prompts['status'], 'prompts': prompts['prompts']}
-    report['scope'] = 'Default layout plus saved video prompt structure and timeline; semantic, asset binding, approval and media checks remain separate.'
+    if check_timing:
+        from validate_production_timing import validate as validate_timing
+        timing = validate_timing(tables, segment_seconds, prompt_mode)
+        report['errors'].extend(timing['errors'])
+        report['production_timing'] = {k: v for k, v in timing.items() if k != 'errors'}
+    report['status'] = 'invalid' if report['errors'] else 'valid'
+    report['scope'] = 'Layout, prose, package timing and recorded reading evidence; semantics, real recordings, bindings, approval and platform support remain separate.'
     return report
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('xlsx', type=pathlib.Path)
+    parser.add_argument('--mode', choices=['multi_shot', 'single_shot'], default='multi_shot')
+    parser.add_argument('--segment-seconds', type=float, default=15)
     args = parser.parse_args()
     try:
-        report = validate_delivery(read_xlsx(args.xlsx))
+        report = validate_delivery(read_xlsx(args.xlsx), args.mode, segment_seconds=args.segment_seconds)
     except (OSError, ValueError, KeyError, IndexError, ET.ParseError, zipfile.BadZipFile) as exc:
         print(json.dumps({'status': 'unreadable', 'error': str(exc)}, ensure_ascii=True))
         return 2

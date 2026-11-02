@@ -111,7 +111,7 @@ def validate(text, mode='auto'):
     for field in ['镜头逻辑与节奏', '声音策略', '禁止项', '结尾']:
         if not re.search(re.escape(field) + r'[:：][^\n\S]*\S[^\n]*', ending):
             error('PROMPT_ENDING_FIELD', field=field)
-    return {'status': 'invalid' if errors else 'valid', 'errors': errors, 'shots': len(numbers), 'phases': len(phases), 'manual_review': 'Still required: shot meaning and prose density, performance/camera causality, local real asset bindings, sound policy and final state. Structure is not execution readiness.'}
+    return {'status': 'invalid' if errors else 'valid', 'errors': errors, 'shots': len(numbers), 'phases': len(phases), 'total_seconds': total, 'manual_review': 'Still required: shot meaning and prose density, performance/camera causality, local real asset bindings, sound policy and final state. Structure is not execution readiness.'}
 
 
 def validate_workbook(tables, mode='auto'):

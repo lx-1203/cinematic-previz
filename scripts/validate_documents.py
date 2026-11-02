@@ -68,6 +68,7 @@ def check_links(root):
 def check_example_timing(name, text):
     errors = []
     kept_total = 0
+    multi_shot = '<!-- generation_mode: multi_shot -->' in text
     lines = outside_code(text).splitlines()
     for i, line in enumerate(lines):
         if [x.strip() for x in line.strip('|').split('|')] != [
@@ -87,7 +88,7 @@ def check_example_timing(name, text):
                 errors.append({'code': 'EXAMPLE_NUMBER', 'file': name, 'segment': segment})
                 continue
             kept_total += kept
-            if not 4 <= generated <= 8:
+            if (multi_shot and not math.isclose(generated, 15, abs_tol=1e-6)) or (not multi_shot and not 4 <= generated <= 8):
                 errors.append({'code': 'EXAMPLE_DURATION', 'file': name, 'segment': segment})
             if not 0 < kept <= generated:
                 errors.append({'code': 'EXAMPLE_EDIT', 'file': name, 'segment': segment})

@@ -62,9 +62,12 @@ class ExcelLayoutTests(unittest.TestCase):
             block = next(part for part in text.split('\n## ') if (part if part.startswith('## ') else '## ' + part).startswith(section))
             rows = [[v.strip().replace('<br>', '\n') for v in line.strip('|').split('|')] for line in block.splitlines() if line.startswith('|')]
             tables[name] = {5: rows[0], **{i + 6: row for i, row in enumerate(rows[2:])}}
+        self.assertIn('<!-- reading_mode: no_text -->', text)
+        tables['朗读测时'] = {3: ['朗读模式', '无朗读文本']}
         report = layout.validate_delivery(tables)
         self.assertEqual(report['errors'], [])
-        self.assertEqual(report['shots'], 4)
+        self.assertEqual(report['shots'], 1)
+        self.assertEqual(report['production_timing']['segment_seconds'], 15)
 
 
 if __name__ == '__main__':

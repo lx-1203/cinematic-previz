@@ -747,7 +747,7 @@
     },
     {
       "id": "timing",
-      "title": "生成时长、剪辑时长与完整句",
+      "title": "朗读核算、15秒大段与完整句",
       "parent": "production",
       "source": {
         "path": "references/timing.md"
@@ -765,7 +765,7 @@
   "rule_sources": {
     "duration": {
       "module": "timing",
-      "section": "## 生成片段与剪辑时长"
+      "section": "## 先核算朗读再排15秒大段"
     },
     "sentence": {
       "module": "timing",

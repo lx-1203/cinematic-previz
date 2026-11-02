@@ -46,6 +46,14 @@ class DocumentContracts(unittest.TestCase):
                 '| --- | --- | --- |\n| SG01 | 4 | 2 |\n')
         self.assertEqual(validate_documents.check_example_timing('example.md', text), [])
 
+    def test_default_multishot_example_is_one_fifteen_second_task(self):
+        text = ('<!-- generation_mode: multi_shot -->\n'
+                '| segment_id | generation_seconds | edit_seconds |\n'
+                '| --- | --- | --- |\n| PK01 | 15 | 15 |\n')
+        self.assertEqual(validate_documents.check_example_timing('example.md', text), [])
+        codes = {e['code'] for e in validate_documents.check_example_timing('example.md', text.replace('15 | 15', '14 | 14'))}
+        self.assertIn('EXAMPLE_DURATION', codes)
+
     def test_example_total_must_match_kept_duration(self):
         text = ('<!-- edit_total_seconds: 15 -->\n'
                 '| segment_id | generation_seconds | edit_seconds |\n'

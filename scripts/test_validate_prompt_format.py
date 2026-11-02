@@ -91,11 +91,11 @@ class PromptFormatTests(unittest.TestCase):
     def test_workbook_delivery_command_checks_prompt_cells_not_only_layout(self):
         tables = {'逐镜脚本': {5: ['镜号与时间', '场次与人物阶段', '当前完整视频规划词', '首帧', '人物参考', '场景参考', '表情参考', '物品参考', '生成设置与状态', '审阅意见'], 6: ['SH01', '课堂', '旧版平铺描述']}, '提示词指导': {5: ['镜号与时间', *layout.GUIDANCE_HEADERS], 6: ['SH01', *['本镜设计'] * 6]}}
         self.assertEqual(layout.validate(tables)['errors'], [])
-        report = layout.validate_delivery(tables)
+        report = layout.validate_delivery(tables, prompt_mode='single_shot', check_timing=False)
         self.assertEqual(report['status'], 'invalid')
         self.assertTrue(any(e.get('cell') == 'C6' and e['code'] == 'PROMPT_SECTION_MISSING' for e in report['errors']))
         tables['逐镜脚本'][6][2] = VALID
-        self.assertEqual(layout.validate_delivery(tables)['errors'], [])
+        self.assertEqual(layout.validate_delivery(tables, prompt_mode='single_shot', check_timing=False)['errors'], [])
         tables['逐镜脚本'] = {5: ['镜号与时间', '当前完整视频规划词'], 6: ['SH01', VALID]}
         self.assertIn('MAIN_HEADERS', {e['code'] for e in layout.validate_delivery(tables)['errors']})
 
