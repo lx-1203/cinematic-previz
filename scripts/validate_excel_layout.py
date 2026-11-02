@@ -68,6 +68,10 @@ def validate(tables):
         if len(set(shots[name])) != len(shots[name]):
             errors.append({'code': 'SHOT_DUPLICATE', 'sheet': name})
         if name == '逐镜脚本':
+            normalized = ['镜号与时间' if h in ID_HEADERS else '当前完整视频规划词' if h in PROMPT_HEADERS else h for h in headers[name] if h]
+            expected = ['镜号与时间', '场次与人物阶段', '当前完整视频规划词', '首帧', '人物参考', '场景参考', '表情参考', '物品参考', '生成设置与状态', '审阅意见']
+            if normalized != expected:
+                errors.append({'code': 'MAIN_HEADERS', 'expected': expected})
             forbidden = set(GUIDANCE_HEADERS) | LEGACY_HEADERS
             found = sorted(set(headers[name]) & forbidden)
             if found:
@@ -87,12 +91,24 @@ def validate(tables):
     return {'status': 'valid' if not errors else 'invalid', 'errors': errors, 'shots': len(shots.get('逐镜脚本', [])), 'scope': 'Default sheet layout, header placement, nonempty design and ordered shot IDs; semantic and media checks remain separate.'}
 
 
+def validate_delivery(tables, prompt_mode='auto'):
+    """The delivery gate includes prose checks; layout-only validate is not enough."""
+    from validate_prompt_format import validate_workbook
+    report = validate(tables)
+    prompts = validate_workbook(tables, prompt_mode)
+    report['errors'].extend(prompts['errors'])
+    report['status'] = 'invalid' if report['errors'] else 'valid'
+    report['prompt_format'] = {'status': prompts['status'], 'prompts': prompts['prompts']}
+    report['scope'] = 'Default layout plus saved video prompt structure and timeline; semantic, asset binding, approval and media checks remain separate.'
+    return report
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('xlsx', type=pathlib.Path)
     args = parser.parse_args()
     try:
-        report = validate(read_xlsx(args.xlsx))
+        report = validate_delivery(read_xlsx(args.xlsx))
     except (OSError, ValueError, KeyError, IndexError, ET.ParseError, zipfile.BadZipFile) as exc:
         print(json.dumps({'status': 'unreadable', 'error': str(exc)}, ensure_ascii=True))
         return 2

@@ -62,7 +62,7 @@ class ExcelLayoutTests(unittest.TestCase):
             block = next(part for part in text.split('\n## ') if (part if part.startswith('## ') else '## ' + part).startswith(section))
             rows = [[v.strip().replace('<br>', '\n') for v in line.strip('|').split('|')] for line in block.splitlines() if line.startswith('|')]
             tables[name] = {5: rows[0], **{i + 6: row for i, row in enumerate(rows[2:])}}
-        report = layout.validate(tables)
+        report = layout.validate_delivery(tables)
         self.assertEqual(report['errors'], [])
         self.assertEqual(report['shots'], 4)
 
