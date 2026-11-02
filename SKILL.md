@@ -9,56 +9,41 @@ description: Use when creating or revising 漫剧、短剧、导演分镜、Blen
 
 # 星迹的AIGC
 
-新规划默认先逐句核算朗读，再按每15秒一个多镜大段（`multi_shot`）组织任务；主表每包一行，小分镜在包内，不恢复为每小镜4—8秒生成。规则、朗读证据与联合校验见[时间规范](references/timing.md#先核算朗读再排15秒大段)。
-
-Excel默认采用“逐镜脚本”主表＋“提示词指导”分表：六项设计指导只放分表，不在主表重复铺列；完整视频词、首帧及四类参考留在主表。默认不增加“来源位置”等定位列。栏目与导出校验见[分镜交付](references/director.md#默认交付专业分镜表)。视频正文必须按[分层格式及交付检查](references/prompts.md#提示词正文交付检查)展开，导出后运行布局＋正文联合校验；待审核稿同样检查，不能只查表头或以“尚未定稿”解释格式缺失。
-
-作者：星迹。稳定调用名 `$cinematic-previz`。根据剧情完成导演设计、资产与首帧、视频接力和剪辑；只执行用户当前要求的范围。内容版本 **0.6.0**，配对声明不代表完整Bridge源码或插件已发布，见 [发布说明](references/maintenance-release.md)。
-
-## 可视化查看
-
-查看当前更新状态、模块依赖与按任务解析的读取顺序时，启动[本机查看器](references/dashboard.md)。默认三步展示，专项按[触发说明](references/reading-triggers.json)选用，完整依赖可展开；勾选不是审核或执行授权。它直接读取当前文件，区分本机同步和远端内容核验；读取链不冒充AI历史阅读日志。
+作者：星迹。调用名 `$cinematic-previz`；内容及配对声明0.6.0不等于完整插件已发布，见[维护指南](references/maintenance-release.md)。按本次任务读取下表，不默认启动整片制作。
 
 ## 每次调用前检查同步
 
-```text
-python "<实际skill目录>/scripts/sync_from_project.py"
-```
-
-只在 `status=current/updated` 后继续，重新读取返回的skill_file和本次所需参考；同步器自身更新后再运行一次。冲突、BUSY、来源缺失或失败时保留本地改动和活锁并报告，不降级绕过。独立包不要求注册来源；无命令能力时的适用条件见 [运行规则](references/workflow.md#每次调用前确认独立模式或项目同步模式)。本机同步不证明远端最新。
+运行 `python "<skill-dir>/scripts/sync_from_project.py"`。仅在current/updated后重新读返回的SKILL和本次参考；同步器自身更新则再运行一次。失败保留改动与活锁并报告，不能绕过。独立模式见[运行规则](references/workflow.md#每次调用前确认独立模式或项目同步模式)。
 
 ## 范围与关键边界
 
-每次加载必读 [共享边界](references/core.md)。新项目先交文档剧本并取得用户通过，再做Excel分镜、资产和首帧；含图Excel通过后才进视频制作，最终使用OpenCut剪辑导出。沿用已审同版和现有范围，不为查询或维护任务启动制作。完整顺序只在 [stages](references/workflow.md#制作阶段与审核顺序) 维护。
+每次读[core](references/core.md)，沿用已有原稿、版本、审核和授权。新项目进入制作按stages：文档剧本通过后做Excel/资产/首帧，含图Excel通过后生成视频，OpenCut剪辑；只写词或查询时完成当前交付。
 
-执行词只取已审核Excel，获授权改词先改表再读取；`continue`原样用实际出点尾帧；未要求不生成规划尾帧。生成时长与完整句、声音、预算分别按下方正式来源，不从示例猜默认值。缺能力、未执行和未验收如实标记。
+默认先核算朗读，再排每15秒一个multi_shot包；Excel主表一包一行，六项指导仅在“提示词指导”分表，不增“来源位置”列。完整词保留[分层格式与校验](references/prompts.md#提示词正文交付检查)。实际生成逐字取已审Excel；continue原样用实际出点尾帧；未要求不制规划尾帧。未执行、缺素材与待审核如实标记。
 
 ## 按任务读取
 
-补充课堂分镜方法、检索60项镜头或处理节奏/资产版式/动作重叠时读[课堂方法补充](references/classroom-storyboard.md)（camera.classroom）：六类情境及术语按剧情选用，课件秒数与布局不覆盖现行朗读、15秒分包、分表和双参考五视图规则。
+用 `python "<skill-dir>/scripts/read_modules.py" read <模块ID>` 读取，同脚本tree命令查ID；[索引](module-index.json)自动带入core、父节点和必要依赖。仅追加当前任务触发的专项；完整分镜保留必需设计与交付。
 
-分类、父子关系和跨分支依赖以 [module-index.json](module-index.json) 为唯一配置。运行读取器可自动带入core和必要依赖，不自动展开所有兄弟方法或所有平台。
-
-```text
-python "<skill-dir>/scripts/read_modules.py" tree
-python "<skill-dir>/scripts/read_modules.py" read <模块ID> [其他模块ID]
-```
-
-| 当前任务 | 入口模块 |
+| 触发条件 | 读取模块 |
 | --- | --- |
-| 单项风格、表演、打光、声音 | style / performance / lighting / sound |
-| 一种运镜或转场 | camera.<方法> / transitions.<方法>；先tree查ID，按剧情选叶节点 |
-| 完整分镜 | storyboard；具体运镜和转场再追加所选叶节点 |
-| 人物、表情、物品资产 | character-assets / expression-assets / prop-assets |
-| 首帧或三维预演 | previs.start / previs.3d |
-| 提示词、时长、完整句 | prompts / timing |
-| 实际生成与接力 | generation；有任务间接力再加handoff，实际操作平台时再选对应平台模块 |
-| 全片制作、记录、整理、交付检查 | workflow / records / organization / delivery |
-| 平台操作 | platform.updream及对应子模块 / platform.jimeng / platform.libtv |
-| 技能维护或故障反馈 | runtime；[维护收尾](references/maintenance-release.md) / platform.feedback |
-
-完整分镜保留全部专业分支及独立可复制的逐镜完整词，不以单项查询输出冒充整套交付。模块加载只减少无关阅读，不减少用户要求的交付。规则归属、依赖与兼容入口见 [读取说明](references/module-loading.md#公共规则的正式来源)。
+| 写/改视频提示词 | prompts；按正文里的写词/执行条件使用 |
+| 制作完整Excel分镜 | storyboard；[主表规范](references/director.md#默认交付专业分镜表) |
+| 查或改风格/表演/打光/声音 | 对应style / performance / lighting / sound |
+| 确定使用某种运镜/转场 | 对应camera.<方法> / transitions.<方法> |
+| 制作人物/表情/物品资产 | 对应character-assets / expression-assets / prop-assets |
+| 制作首帧/三维预演 | previs.start / previs.3d |
+| 排时长或核算朗读 | timing |
+| 实际生成视频 | generation；任务间续接再加handoff |
+| 实际操作某平台 | 只读相应platform模块 |
+| 整理记录/项目/交付 | 对应records / organization / delivery；完整制作读workflow |
+| 采用课堂方法或查60项镜头 | camera.classroom；[课件适用条件](references/classroom-storyboard.md) |
+| 修改skill或排查工具 | runtime及[维护指南](references/maintenance-release.md)；反馈按platform.feedback |
 
 ## 维护收尾
 
-修改注册来源，验证后同步安装并读回。沿用已有GitHub备份授权完成精确提交、非强推上传和远端文件核验，按 [维护指南](references/maintenance-release.md) 分别报告本机与远端状态；无发布授权不自行公开，阻塞记backup_pending。源码缺失的Bridge不冒称完整插件。缺工具时按 [反馈流程](references/github-feedback.md) 保留脱敏记录；公开上报须有对应授权。
+修改注册来源，验证后同步安装并读回。已有GitHub备份授权时，精确提交本轮范围、正常推送并验远端文件；失败记backup_pending。未授权不自行公开，不把skill_only说成完整Bridge插件。
+
+## 可视化查看
+
+需要查看状态或读取链时用[本机查看器](references/dashboard.md)。页面选择不代替正文条件、项目审核或执行授权。
