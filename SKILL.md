@@ -17,7 +17,7 @@ Excel默认采用“逐镜脚本”主表＋“提示词指导”分表：六项
 
 ## 可视化查看
 
-查看当前更新状态、模块依赖与按任务解析的读取顺序时，启动[本机查看器](references/dashboard.md)。它直接读取当前文件，区分本机同步和远端内容核验；读取链不冒充AI历史阅读日志。
+查看当前更新状态、模块依赖与按任务解析的读取顺序时，启动[本机查看器](references/dashboard.md)。默认三步展示，专项按[触发说明](references/reading-triggers.json)选用，完整依赖可展开；勾选不是审核或执行授权。它直接读取当前文件，区分本机同步和远端内容核验；读取链不冒充AI历史阅读日志。
 
 ## 每次调用前检查同步
 
@@ -52,7 +52,7 @@ python "<skill-dir>/scripts/read_modules.py" read <模块ID> [其他模块ID]
 | 人物、表情、物品资产 | character-assets / expression-assets / prop-assets |
 | 首帧或三维预演 | previs.start / previs.3d |
 | 提示词、时长、完整句 | prompts / timing |
-| 实际生成与接力 | generation / handoff；按阶段选平台 |
+| 实际生成与接力 | generation；有任务间接力再加handoff，实际操作平台时再选对应平台模块 |
 | 全片制作、记录、整理、交付检查 | workflow / records / organization / delivery |
 | 平台操作 | platform.updream及对应子模块 / platform.jimeng / platform.libtv |
 | 技能维护或故障反馈 | runtime；[维护收尾](references/maintenance-release.md) / platform.feedback |

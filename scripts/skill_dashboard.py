@@ -26,7 +26,7 @@ PRESETS = [
     ('storyboard', '完整分镜', '查看导演分镜连同所需专业分支', ['storyboard']),
     ('prompt', '提示词编写', '正文格式、时长、声音和审核边界', ['prompts']),
     ('frame', '人物与首帧', '人物阶段、表情、物品和首帧输入', ['previs.start']),
-    ('video', '视频与接力', '生成规则、转场及真实尾帧交接', ['generation', 'handoff']),
+    ('video', '生成视频', '生成规则、输入和能力检查；接力按需追加', ['generation']),
     ('classroom', '课堂方法', '六类情境及60项镜头索引', ['camera.classroom']),
     ('camera', '单项运镜', '以焦点转移为例，只带入必要依赖', ['camera.focus']),
     ('maintenance', '技能维护', '同步门禁及运行维护规则', ['runtime']),
@@ -89,6 +89,28 @@ class DashboardStore:
             raise ValueError('The registered skill source is missing; it is not a standalone installation')
         return source, data
 
+    def trigger_rules(self):
+        path = self.root / 'references/reading-triggers.json'
+        if not path.exists():
+            return {'tasks': {}, 'conditions': []}
+        data = json.loads(path.read_text(encoding='utf-8-sig'))
+        if (not isinstance(data, dict) or data.get('version') != 1 or
+                not isinstance(data.get('tasks'), dict) or not isinstance(data.get('conditions'), list)):
+            raise ValueError('Invalid reading trigger configuration')
+        ids = set()
+        for key, task in data['tasks'].items():
+            if not isinstance(task, dict) or any(not isinstance(task.get(k), str) or not task[k].strip()
+                                                for k in ('when','action','gate','source')):
+                raise ValueError('Invalid task trigger: ' + str(key))
+        for condition in data['conditions']:
+            if (not isinstance(condition, dict) or any(not isinstance(condition.get(k), str) or not condition[k].strip()
+                                                     for k in ('id','title','when','source')) or condition['id'] in ids):
+                raise ValueError('Invalid or duplicate optional trigger')
+            ids.add(condition['id'])
+            read_modules.strings(condition.get('tasks'), 'trigger.tasks', nonempty=True)
+            read_modules.strings(condition.get('modules'), 'trigger.modules', nonempty=True)
+        return data
+
     def state(self):
         contents = snapshot(self.root)
         hashes = {name: hashlib.sha256(data).hexdigest() for name, data in contents.items()}
@@ -141,11 +163,29 @@ class DashboardStore:
             date = re.search(r'20\d{2}-\d{2}-\d{2}', line)
             changes.append({'title': line[3:], 'date': date[0] if date else None, 'body': log[begin+len(line):stop].strip()})
         readable = {n['id'] for n in catalog['nodes'] if n['readable']}
-        presets = [{'id': i, 'title': t, 'description': d, 'modules': m} for i,t,d,m in PRESETS if all(x in readable for x in m)]
+        triggers = self.trigger_rules()
+        presets = [dict(triggers['tasks'].get(i, {}), id=i, title=t, description=d, modules=m)
+                   for i,t,d,m in PRESETS if all(x in readable for x in m)]
+        conditions = [c for c in triggers['conditions'] if all(m in readable for m in c['modules'])]
         return {'name': name[1].strip() if name else self.root.name, 'title': title[1] if title else self.root.name,
                 'version': version[1] if version else '未声明', 'checked_at': now(), 'root': str(self.root), 'source_root': str(source),
                 'local': local, 'remote': remote, 'files': files, 'catalog': catalog, 'changelog': changes,
-                'entry_text': entry, 'presets': presets}
+                'entry_text': entry, 'presets': presets, 'conditions': conditions}
+
+    def plan(self, task_id, enabled):
+        state = self.state()
+        task = next((p for p in state['presets'] if p['id'] == task_id), None)
+        if task is None:
+            raise ValueError('Unknown or unavailable task')
+        options = [c for c in state['conditions'] if task_id in c['tasks']]
+        if set(enabled) - {c['id'] for c in options}:
+            raise ValueError('Unknown or inapplicable trigger for this task')
+        base = self.route(task['modules'])
+        base_ids = {m['id'] for m in base['modules']}
+        options = [dict(c, included=all(m in base_ids for m in c['modules']),
+                        active=c['id'] in enabled or all(m in base_ids for m in c['modules'])) for c in options]
+        requested = list(dict.fromkeys(task['modules'] + [m for c in options if c['active'] for m in c['modules']]))
+        return {'task': task, 'conditions': options, 'requested': requested, 'route': self.route(requested)}
 
     def route(self, requested):
         if not requested or len(requested) > 24:
@@ -277,6 +317,8 @@ def make_server(store, port):
                     self.reply(store.state())
                 elif url.path == '/api/route':
                     self.reply(store.route([m for m in query.get('modules', [''])[0].split(',') if m]))
+                elif url.path == '/api/plan':
+                    self.reply(store.plan(query.get('task', [''])[0], [c for c in query.get('triggers', [''])[0].split(',') if c]))
                 elif url.path == '/api/document':
                     self.reply(store.document(query.get('path', [''])[0]))
                 elif url.path in ('/', '/index.html', '/style.css', '/app.js'):

@@ -101,6 +101,36 @@ class DashboardTests(unittest.TestCase):
         self.assertIn('Latest change', state['changelog'][0]['body'])
         self.assertEqual(state['version'], '0.6.0')
 
+    def add_trigger_fixture(self):
+        catalog = dict(self.catalog, nodes=self.catalog['nodes'] + [
+            {'id':'runtime','title':'Maintenance','parent':'aigc','source':{'path':'references/core.md'}}])
+        (self.root/'module-index.json').write_text(json.dumps(catalog),encoding='utf-8')
+        (self.root/'references/reading-triggers.json').write_text(json.dumps({
+            'version':1, 'tasks':{'maintenance':{'when':'When maintaining rules','action':'Read maintenance rules','gate':'Preserve local changes','source':'references/core.md'}},
+            'conditions':[{'id':'focus','title':'Need focus transfer','when':'A shot changes focus','tasks':['maintenance'],
+                           'modules':['camera.focus'],'source':'references/focus.md'}]}),encoding='utf-8')
+
+    def test_trigger_plan_does_not_load_optional_modules_without_condition(self):
+        self.add_trigger_fixture()
+        result = self.store.plan('maintenance', [])
+        self.assertEqual(result['requested'], ['runtime'])
+        self.assertEqual([m['id'] for m in result['route']['modules']], ['core','runtime'])
+        self.assertFalse(result['conditions'][0]['active'])
+        self.assertEqual(result['task']['gate'], 'Preserve local changes')
+
+    def test_trigger_plan_adds_real_dependencies_and_can_remove_condition(self):
+        self.add_trigger_fixture()
+        result = self.store.plan('maintenance', ['focus'])
+        expected = self.store.route(['runtime','camera.focus'])
+        self.assertEqual(result['route']['modules'], expected['modules'])
+        self.assertTrue(result['conditions'][0]['active'])
+        self.assertNotIn('camera.focus', [m['id'] for m in self.store.plan('maintenance', [])['route']['modules']])
+
+    def test_trigger_plan_rejects_unknown_or_inapplicable_conditions(self):
+        self.add_trigger_fixture()
+        for task, conditions in [('unknown',[]),('maintenance',['unknown']),('camera',['focus'])]:
+            with self.subTest(task=task), self.assertRaises(ValueError): self.store.plan(task,conditions)
+
     def git(self, *args):
         return subprocess.check_output(['git',*args],cwd=self.root,stderr=subprocess.PIPE)
 
@@ -129,6 +159,7 @@ class DashboardTests(unittest.TestCase):
         self.assertTrue(result['error'])
 
     def test_http_routes_and_host_origin_guards(self):
+        self.add_trigger_fixture()
         server = dashboard.make_server(self.store, 0)
         self.addCleanup(server.server_close)
         thread = threading.Thread(target=server.serve_forever, daemon=True)
@@ -145,6 +176,10 @@ class DashboardTests(unittest.TestCase):
             return status,content
         self.assertEqual(request('/api/state')[0],200)
         self.assertEqual(request('/api/route?modules=camera.focus')[0],200)
+        status, payload = request('/api/plan?task=maintenance&triggers=focus')
+        self.assertEqual(status,200)
+        self.assertIn('camera.focus',json.loads(payload)['requested'])
+        self.assertEqual(request('/api/plan?task=maintenance&triggers=unknown')[0],400)
         self.assertEqual(request('/api/document?path=..%2Foutside.md')[0],400)
         self.assertEqual(request('/api/state',headers={'Host':'evil.example'})[0],403)
         self.assertEqual(request('/api/remote-check','POST',{'Origin':'https://evil.example'})[0],403)
