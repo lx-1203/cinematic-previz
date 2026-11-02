@@ -6,7 +6,6 @@
   const short = value => String(value || '').slice(0, 12) || '—';
   const titles = {overview:['技能运行总览','看清当前规则的版本、更新和阅读入口。'],routes:['AI 如何读取规则','选择任务，查看读取器解析出的顺序、依赖与实际章节。'],updates:['每一次更新，都有来处','从当前 CHANGELOG 读取维护记录，查看规则如何变化。'],files:['规则文件，随时查阅','搜索当前安装的文件，直接查看原文和内容指纹。']};
   let state = null, view = 'overview', route = null, requested = [], selectedPreset = null;
-  let plan = null, activeTriggers = [], technicalOpen = false;
   let refreshing = false, remoteBusy = false, routeRequest = 0, docRequest = 0;
   let documentData = null, documentMode = 'preview', findIndex = -1, toastTimer;
   let fileQuery = '', fileFilter = 'all', pickerQuery = '', pickerSelection = [];
@@ -102,42 +101,26 @@
     <details class="source-details"><summary>查看来源、同步指纹与核验详情</summary><dl><dt>当前安装</dt><dd>${esc(state.root)}</dd><dt>注册来源</dt><dd>${esc(state.source_root || '独立安装，未注册来源')}</dd><dt>来源指纹</dt><dd>${esc(l.source_revision || '未记录')}</dd><dt>安装指纹</dt><dd>${esc(l.installed_revision)}</dd><dt>远端提交</dt><dd>${esc(r.commit || '尚未核验')}</dd><dt>核验时间</dt><dd>${esc(date(r.checked_at))}</dd><dt>远端分支</dt><dd>${esc(r.branch || '尚未核验')}</dd></dl>${differences(l.differences)}${differences(r.differences)}</details>`;
   }
   function renderRoutesShell() {
-    $('#view-routes').innerHTML = `<div class="task-choice"><label for="task-select">这次要做什么？</label><select id="task-select">${!selectedPreset&&route?'<option value="">自选模块</option>':''}${(state.presets || []).map(p=>`<option value="${esc(p.id)}" ${p.id===selectedPreset?'selected':''}>${esc(p.title)}</option>`).join('')}</select><span>先看三步，需要时再展开细节。</span></div>
-      <div id="route-result">${route ? routeMarkup() : '<div class="loading" role="status">正在整理本次读取计划…</div>'}</div>`;
+    $('#view-routes').innerHTML = `<div class="section-toolbar"><div><h2>选择这次要做的事</h2><p>先完成调用前检查，再按依赖读取专项规则。</p></div><span class="badge muted">规则解析 · 非历史日志</span></div>
+      <div class="preset-bar" id="preset-bar">${(state.presets || []).map(p=>`<button class="preset ${p.id===selectedPreset?'selected':''}" data-preset="${esc(p.id)}" aria-pressed="${p.id===selectedPreset}">${esc(p.title)}</button>`).join('')}</div>
+      <div id="route-result">${route ? routeMarkup() : '<div class="loading">正在计算模块依赖…</div>'}</div>
+      <details class="module-picker"><summary>自选模块 / 查看模块分类</summary><div class="picker-tools"><label for="module-search" class="sr-only">搜索模块</label><input class="search-input" id="module-search" type="search" placeholder="搜索模块名称或 ID" value="${esc(pickerQuery)}"><button id="clear-modules" class="button subtle">清空选择</button><button id="apply-modules" class="button primary">生成读取链</button></div><div id="module-options" class="picker-grid">${pickerMarkup()}</div></details>`;
   }
   function pickerMarkup() {
     return (state.catalog?.nodes || []).filter(n=>n.readable).filter(n=>(n.id+' '+n.title).toLowerCase().includes(pickerQuery.toLowerCase())).map(n=>`<label class="module-choice"><input type="checkbox" name="module" value="${esc(n.id)}" ${pickerSelection.includes(n.id)?'checked':''}><span>${esc(n.title)}<small>${esc(n.id)}${n.parent ? ' / '+esc(n.parent) : ''}</small></span></label>`).join('') || '<p class="section-description">没有匹配的模块。</p>';
   }
   function routeMarkup() {
-    const task = plan?.task || state.presets?.find(p=>p.id===selectedPreset) || {};
-    const conditions = plan?.conditions || [];
-    return `<div class="simple-flow" id="simple-flow" data-task="${esc(selectedPreset || 'custom')}">
-      <article class="main-step"><span class="flow-number">01</span><h2>检查入口</h2><p class="when-label">每次调用时触发</p><p>同步检查后，读入口和共用边界。</p><p class="continue-condition">继续条件：同步结果为 current / updated。</p><button class="text-action" data-document="SKILL.md">查看入口规则 ↗</button></article>
-      <article class="main-step"><span class="flow-number">02</span><h2>${esc(task.title || '读取本次规则')}</h2><p class="when-label">${esc(task.when || '手动选择模块时触发')}</p><p>${esc(task.action || '按所选模块读取现有规则与依赖。')}</p><p class="continue-condition">继续条件：${esc(task.gate || '按对应规则与当前项目证据核对。')}</p>${task.source?`<button class="text-action" data-document="${esc(task.source)}">查看具体要求 ↗</button>`:''}</article>
-      <article class="main-step conditional-step"><span class="flow-number">03</span><h2>按条件补充</h2><p class="when-label">只勾本次适用的情况</p><div id="trigger-options">${conditions.map(c=>`<label class="trigger-option ${c.active?'active':''}"><input type="checkbox" data-trigger="${esc(c.id)}" ${c.active?'checked':''} ${c.included?'disabled':''}><span><strong>${esc(c.title)}</strong><small>${esc(c.included?'已由当前任务带入':c.when)}</small></span></label>`).join('') || '<p class="no-triggers">本任务无需额外专项。</p>'}</div></article>
-      </div><p class="plan-caption">这里只制定读取计划；审核与执行条件仍按项目证据核对。</p>
-      <details id="technical-details" class="technical-details" ${technicalOpen?'open':''}><summary>查看完整读取顺序与模块 <span>${route.modules.length} 项</span></summary>
-      <div class="technical-body"><div class="route-toolbar"><div><p class="route-command">read_modules.py read ${esc(requested.join(' '))}</p></div><button id="copy-command" class="button">复制读取命令</button></div>
+    const preset = state.presets?.find(p=>p.id===selectedPreset);
+    return `<div class="route-toolbar"><div><strong>${esc(preset?.title || '自选模块')} <span class="count-detail">/ ${route.modules.length} 个模块</span></strong><p>${esc(preset?.description || '依赖由 module-index.json 和原有读取器确定。')}</p><p class="route-command">read_modules.py read ${esc(requested.join(' '))}</p></div><button id="copy-command" class="button">复制读取命令</button></div>
+      <div class="route-layout route-layout-spaced"><div><div class="route-intro"><div class="gate-step"><span class="step-number">前置</span><div><h3>调用前同步检查</h3><p>current / updated 后继续；失败保留错误。</p></div></div><div class="gate-step"><span class="step-number">入口</span><div><h3>读取 SKILL.md</h3><p>确定范围、边界与专项入口。</p></div><button class="button subtle" data-document="SKILL.md">查看</button></div></div>
       <div class="route-chain" id="route-chain">${route.modules.map((m,i)=>`<button class="step-card ${m.reason==='requested'?'requested':''}" data-module="${esc(m.id)}"><div class="step-top"><span class="step-number">${String(i+1).padStart(2,'0')}</span><span class="step-tag">${m.reason==='required'?'每次必读':m.reason==='requested'?'本次选用':'依赖带入'}</span></div><h3>${esc(m.title)}</h3><div class="step-id">${esc(m.id)}</div><div class="step-source">${esc(m.source)}${m.sections?.length?`<br>指定 ${m.sections.length} 个章节`:'<br>读取完整文件'}</div>${m.required_by?.length?`<div class="step-relation">关联：${esc(m.required_by.join('、'))}</div>`:''}</button>`).join('')}</div>
-      <p class="route-note">顺序与原读取器一致；必读依赖完整保留。此图为规则解析结果，并非历史阅读记录。</p>
-      <details class="module-picker"><summary>高级：自选模块</summary><div class="picker-tools"><label for="module-search" class="sr-only">搜索模块</label><input class="search-input" id="module-search" type="search" placeholder="搜索模块名称或 ID" value="${esc(pickerQuery)}"><button id="clear-modules" class="button subtle">清空选择</button><button id="apply-modules" class="button primary">生成读取链</button></div><div id="module-options" class="picker-grid">${pickerMarkup()}</div></details></div></details>`;
-  }
-  async function loadPlan(taskId, triggers = []) {
-    technicalOpen=$('#technical-details')?.open ?? technicalOpen;
-    const request=++routeRequest; selectedPreset=taskId;activeTriggers=[...new Set(triggers)];route=null;plan=null;
-    if(view==='routes')renderRoutesShell();
-    try {
-      const result=await api('/api/plan?task='+encodeURIComponent(taskId)+'&triggers='+encodeURIComponent(activeTriggers.join(',')));
-      if(request!==routeRequest)return;
-      plan=result;route=result.route;requested=result.requested;pickerSelection=[...requested];
-      if(view==='routes')renderRoutesShell();
-    }catch(error){if(request===routeRequest&&$('#route-result'))$('#route-result').innerHTML=`<div class="banner error">${esc(error.message)}</div>`;}
+      <p class="route-end">已解析 ${route.modules.length} 个模块，正文共 ${Number(route.content_chars || 0).toLocaleString('zh-CN')} 字符；点击任一步查看实际读取内容。</p></div></div><p class="route-note">分类父子关系与执行依赖分别来自 parent / requires；模块顺序沿用读取器结果。按规则解析不代表某次对话已实际读过。</p>`;
   }
   async function loadRoute(modules, presetId = null) {
     if (!modules.length) { notify('请至少选择一个可读模块。'); return; }
-    technicalOpen=$('#technical-details')?.open ?? technicalOpen;
-    const request = ++routeRequest; requested=[...new Set(modules)]; pickerSelection=[...requested]; selectedPreset=presetId; route=null;plan=null;activeTriggers=[];
+    const request = ++routeRequest; requested=[...new Set(modules)]; pickerSelection=[...requested]; selectedPreset=presetId; route=null;
     if ($('#route-result')) $('#route-result').innerHTML='<div class="loading">正在计算模块依赖…</div>';
+    $$('.preset').forEach(b=>{const on=b.dataset.preset===selectedPreset; b.classList.toggle('selected',on);b.setAttribute('aria-pressed',String(on));});
     try { const result=await api('/api/route?modules='+encodeURIComponent(requested.join(','))); if(request!==routeRequest)return; route=result; if(view==='routes')renderRoutesShell(); }
     catch(error){ if(request!==routeRequest)return; if($('#route-result'))$('#route-result').innerHTML=`<div class="banner error">${esc(error.message)}</div>`; }
   }
@@ -160,7 +143,7 @@
     $('#page-heading').textContent=titles[view][0];$('#page-description').textContent=titles[view][1];$('#breadcrumb-current').textContent=({overview:'状态总览',routes:'读取路径',updates:'更新记录',files:'规则文件'})[view];
     if(!state)return;
     if(view==='overview')renderOverview();if(view==='updates')renderUpdates();if(view==='files')renderFiles();
-    if(view==='routes'){renderRoutesShell();if(!route){const preset=state.presets?.find(p=>p.id===selectedPreset)||state.presets?.[0];if(preset)loadPlan(preset.id,activeTriggers);}}
+    if(view==='routes'){renderRoutesShell();if(!route){const preset=state.presets?.[0];if(preset)loadRoute(preset.modules,preset.id);}}
   }
   async function refresh(manual=false) {
     if(refreshing)return;refreshing=true;$('#refresh-button').disabled=true;
@@ -168,8 +151,7 @@
       const next=await api('/api/state');const changed=state?.catalog?.sha256!==next.catalog?.sha256 || state?.local?.installed_revision!==next.local?.installed_revision;
       state=next;$('#error-banner').hidden=true;const ll=label(localLabels,state.local?.status);$('#local-badge').className='badge '+ll[1];$('#local-badge').textContent='本机 · '+ll[0];$('#side-version').textContent='v'+(state.version || '—');$('#checked-time').textContent='最近检查 '+date(state.checked_at);
       if(view==='overview')renderOverview();if(view==='updates')renderUpdates();if(view==='files'){if($('#file-results'))renderFileList();else renderFiles();}
-      if(view==='routes'&&!$('#task-select'))renderRoutesShell();
-      if(view==='routes'&&(changed||manual)&&requested.length){if(selectedPreset)loadPlan(selectedPreset,activeTriggers);else loadRoute(requested);}
+      if(view==='routes'&&!$('#preset-bar'))renderRoutesShell();if(view==='routes'&&(changed||manual)&&requested.length)loadRoute(requested,selectedPreset);
       if(manual)notify('已重新读取本机文件。');
     }catch(error){showError(error);$('#local-badge').className='badge bad';$('#local-badge').textContent='本机 · 读取失败';}
     finally{refreshing=false;$('#refresh-button').disabled=false;}
@@ -220,6 +202,7 @@
     const button=event.target.closest('button,a');if(!button)return;
     if(button.dataset.view){go(button.dataset.view);return;}if(button.dataset.go){go(button.dataset.go);return;}
     if(button.hasAttribute('data-remote')){checkRemote();return;}if(button.dataset.document){openFile(button.dataset.document);return;}
+    if(button.dataset.preset){const preset=state.presets.find(p=>p.id===button.dataset.preset);if(preset)loadRoute(preset.modules,preset.id);return;}
     if(button.dataset.module){const m=route?.modules.find(m=>m.id===button.dataset.module);if(m){++docRequest;showDocument({path:m.source,title:m.title,module:m.id,content:m.content,sections:m.sections,sha256:m.source_sha256});}return;}
     if(button.dataset.docLink){event.preventDefault();openLink(button.dataset.docLink);return;}if(button.hasAttribute('data-anchor')){event.preventDefault();scrollAnchor(button.dataset.anchor);}
     if(button.id==='refresh-button')refresh(true);
@@ -237,15 +220,7 @@
     if(event.target.name==='module'){if(event.target.checked&&!pickerSelection.includes(event.target.value))pickerSelection.push(event.target.value);if(!event.target.checked)pickerSelection=pickerSelection.filter(id=>id!==event.target.value);}
     if(event.target.id==='document-search'){$('#document-search').dataset.index='-1';}
   });
-  document.addEventListener('change',event=>{
-    if(event.target.id==='file-filter'){fileFilter=event.target.value;renderFileList();}
-    if(event.target.id==='task-select'&&event.target.value)loadPlan(event.target.value,[]);
-    if(event.target.dataset.trigger){
-      const selected=$$('input[data-trigger]:checked').map(input=>input.dataset.trigger);
-      loadPlan(selectedPreset,selected);
-    }
-  });
-  document.addEventListener('toggle',event=>{if(event.target.id==='technical-details'&&event.target.isConnected)technicalOpen=event.target.open;},true);
+  document.addEventListener('change',event=>{if(event.target.id==='file-filter'){fileFilter=event.target.value;renderFileList();}});
   $('#document-search').addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();findText(true);}});
   $('#document-dialog').addEventListener('cancel',()=>{++docRequest;});
   window.addEventListener('hashchange',()=>{const next=location.hash.slice(1);if(titles[next]&&next!==view)go(next);});
