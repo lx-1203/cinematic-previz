@@ -9,6 +9,8 @@ description: Use when creating or revising 漫剧、短剧、导演分镜、Blen
 
 # 星迹的AIGC
 
+Excel默认不增加“来源位置”等定位列，详见[分镜交付](references/director.md#默认交付专业分镜表)。
+
 作者：星迹。稳定调用名 `$cinematic-previz`。根据剧情完成导演设计、资产与首帧、视频接力和剪辑；只执行用户当前要求的范围。内容版本 **0.6.0**，配对声明不代表完整Bridge源码或插件已发布，见 [发布说明](references/maintenance-release.md)。
 
 ## 每次调用前检查同步
