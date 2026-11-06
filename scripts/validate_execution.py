@@ -208,8 +208,7 @@ class Check:
 
 def check_video_prompt(check, data):
     """Compare one saved platform draft with its approved workbook source."""
-    from validate_excel_layout import (Formula, ID_HEADERS, PROMPT_HEADERS, TASKS,
-                                       TASK_HEADERS, identifier, read_xlsx, task_rows)
+    from validate_excel_layout import ID_HEADERS, PROMPT_HEADERS, read_xlsx
     from validate_production_timing import body, cell
     import xml.etree.ElementTree as ET
     import zipfile
@@ -231,21 +230,17 @@ def check_video_prompt(check, data):
         if hashlib.sha256(raw).hexdigest() != expected:
             check.issue('PROMPT_SOURCE_STALE', 'approval.workbook', 'Workbook differs from the approved version')
             return
-        tables = read_xlsx(io.BytesIO(raw), preserve_formulas=True)
+        tables = read_xlsx(io.BytesIO(raw), literal_only=True)
     except (OSError, ValueError, IndexError, KeyError, ET.ParseError, zipfile.BadZipFile):
         check.issue('PROMPT_SOURCE_UNREADABLE', 'approval.workbook', 'Cannot read the approved workbook')
         return
-    if TASKS in tables:
-        header = next((v for _, v in sorted(tables[TASKS].items()) if v and v[0] == TASK_HEADERS[0]), [])
-        rows, column = (task_rows(tables) if header == TASK_HEADERS else []), 4
-    else:
-        legacy = tables.get('逐镜脚本', {})
-        header = next((v for _, v in sorted(legacy.items()) if v and v[0] in ID_HEADERS), [])
-        columns = [i for i, title in enumerate(header) if title in PROMPT_HEADERS]
-        rows = body(legacy, ID_HEADERS) if len(columns) == 1 else []
-        column = columns[0] if rows else 0
-    matches = [cell(values, column) for _, values in rows if identifier(values[0]) == package]
-    if len(matches) != 1 or not matches[0].strip() or isinstance(matches[0], Formula):
+    main = tables.get('逐镜脚本', {})
+    header = next((v for _, v in sorted(main.items()) if v and v[0] in ID_HEADERS), [])
+    columns = [i for i, title in enumerate(header) if title in PROMPT_HEADERS]
+    rows = body(main, ID_HEADERS) if len(columns) == 1 else []
+    matches = [cell(values, columns[0]) for _, values in rows
+               if str(values[0]).splitlines()[0].strip() == package]
+    if len(matches) != 1 or not matches[0].strip():
         check.issue('PROMPT_SOURCE_MISSING', 'approval.workbook', 'Require exactly one complete source cell for this package')
         return
     node = check.text(data.get('target_node_id'), 'target_node_id')

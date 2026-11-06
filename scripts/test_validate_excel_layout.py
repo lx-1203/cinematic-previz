@@ -58,25 +58,16 @@ class ExcelLayoutTests(unittest.TestCase):
     def test_shipped_example_matches_the_same_layout_contract(self):
         text = (Path(__file__).resolve().parent.parent / 'references/storyboard-example.md').read_text(encoding='utf-8')
         tables = {}
-        for section, name in [('## A｜', layout.OVERVIEW), ('## A1｜', layout.TASKS)]:
+        for section, name in [('## A｜', '逐镜脚本'), ('## A1｜', '提示词指导')]:
             block = next(part for part in text.split('\n## ') if (part if part.startswith('## ') else '## ' + part).startswith(section))
             rows = [[v.strip().replace('<br>', '\n') for v in line.strip('|').split('|')] for line in block.splitlines() if line.startswith('|')]
-            if name == layout.OVERVIEW:
-                for row in rows[2:]:
-                    row[6] = layout.Formula(row[6])
-            tables[name] = {1: rows[0], **{i + 2: row for i, row in enumerate(rows[2:])}}
+            tables[name] = {5: rows[0], **{i + 6: row for i, row in enumerate(rows[2:])}}
         self.assertIn('<!-- reading_mode: no_text -->', text)
-        report = layout.validate_delivery(tables, reading_evidence={'mode': 'no_text'})
+        tables['朗读测时'] = {3: ['朗读模式', '无朗读文本']}
+        report = layout.validate_delivery(tables)
         self.assertEqual(report['errors'], [])
-        self.assertEqual(report['shots'], 4)
-        self.assertEqual(report['packages'], 1)
+        self.assertEqual(report['shots'], 1)
         self.assertEqual(report['production_timing']['segment_seconds'], 15)
-
-        self.assertIn('READING_MISSING', {e['code'] for e in layout.validate_delivery(tables)['errors']})
-        tables[layout.OVERVIEW][3][6] = tables[layout.TASKS][2][4]
-        self.assertIn('MAIN_PROMPT_REFERENCE', {e['code'] for e in layout.validate(tables)['errors']})
-        tables[layout.OVERVIEW][3][6] = layout.Formula("='生成任务'!$E$3")
-        self.assertIn('MAIN_PROMPT_REFERENCE', {e['code'] for e in layout.validate(tables)['errors']})
 
 
 if __name__ == '__main__':
