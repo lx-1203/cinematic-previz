@@ -19,7 +19,7 @@ description: Use when creating or revising 漫剧、短剧、导演分镜、Blen
 
 每次读[core](references/core.md)，沿用已有原稿、版本、审核和授权。新项目进入制作按stages：文档剧本通过后做Excel/资产/首帧，含图Excel通过后生成视频，OpenCut剪辑；只写词或查询时完成当前交付。
 
-默认先核算朗读，再排每15秒一个multi_shot包；Excel主表一包一行，六项指导仅在“提示词指导”分表，不增“来源位置”列。完整词保留[分层格式与校验](references/prompts.md#提示词正文交付检查)。实际生成逐字取已审Excel；continue原样用实际出点尾帧；未要求不制规划尾帧。未执行、缺素材与待审核如实标记。
+默认先核算朗读再排多镜包。Excel默认“分镜总览＋生成任务”，主表显示提示词，同包原词只存一次，见[主表规范](references/director.md#默认交付专业分镜表)。缺素材直接告知用户。未找到已审词或平台完整读回不一致时暂停该任务，见[原词执行](references/prompts.md#视频提示词以已审核excel为唯一执行来源)。continue原样用实际出点尾帧，未要求不制规划尾帧。
 
 ## 按任务读取
 
@@ -28,7 +28,7 @@ description: Use when creating or revising 漫剧、短剧、导演分镜、Blen
 | 触发条件 | 读取模块 |
 | --- | --- |
 | 写/改视频提示词 | prompts；按正文里的写词/执行条件使用 |
-| 制作/修改/交付Excel分镜 | storyboard；务必先盘点已有资产，将本包适用的实图、ID与版本填入主表；缺失/不适用写明原因，见[主表规范](references/director.md#默认交付专业分镜表) |
+| 制作/修改/交付Excel分镜 | storyboard；按[主表规范](references/director.md#默认交付专业分镜表)盘点选版、保留必要缩略图及素材入口 |
 | 查或改风格/表演/打光/声音 | 对应style / performance / lighting / sound |
 | 确定使用某种运镜/转场 | 对应camera.<方法> / transitions.<方法> |
 | 制作人物/表情/物品资产 | 对应character-assets / expression-assets / prop-assets |

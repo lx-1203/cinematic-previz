@@ -46,8 +46,30 @@ def interval(text):
     return tuple(result)
 
 
-def validate(tables, segment_seconds=15, mode='multi_shot'):
-    from validate_excel_layout import ID_HEADERS
+def read_evidence_rows(evidence):
+    """Map the sidecar to the original reading validation inputs."""
+    if not isinstance(evidence, dict):
+        return None, []
+    units = evidence.get('units', [])
+    if not isinstance(units, list) or any(not isinstance(unit, dict) for unit in units):
+        return None, []
+    readings = {
+        3: ['朗读模式', '无朗读文本'] if evidence.get('mode') == 'no_text' else
+           ['估算音节/秒', evidence.get('rate')],
+        5: ['发声单元'],
+    }
+    sources = []
+    for row, unit in enumerate(units, 6):
+        sources.append((row, [unit.get(key, '') for key in ('id', 'start', 'end', 'budget', 'text')]))
+        readings[row] = [unit.get(key, '') for key in (
+            'id', 'spoken', 'count', 'pause', 'estimate', 'measured', 'budget',
+            'estimate_margin', 'test_margin', 'package_ids',
+        )]
+    return readings, sources
+
+
+def validate(tables, segment_seconds=15, mode='multi_shot', reading_evidence=None):
+    from validate_excel_layout import ID_HEADERS, TASKS, task_rows
     from validate_prompt_format import validate as validate_prompt
     errors = []
     def error(code, **details):
@@ -55,27 +77,33 @@ def validate(tables, segment_seconds=15, mode='multi_shot'):
     if mode not in ('multi_shot', 'single_shot') or number(segment_seconds) is None or float(segment_seconds) <= 0:
         return {'status': 'invalid', 'errors': [{'code': 'TIMING_POLICY'}]}
     segments, cursor = [], 0.0
-    for row, values in body(tables.get('逐镜脚本', {}), ID_HEADERS):
+    lean = TASKS in tables
+    rows = task_rows(tables) if lean else body(tables.get('逐镜脚本', {}), ID_HEADERS)
+    settings_col, prompt_col = (2, 4) if lean else (8, 2)
+    for row, values in rows:
         bounds = interval(values[0])
         if bounds is None or not math.isclose(bounds[0], cursor, abs_tol=1e-6) or not math.isclose(bounds[1] - bounds[0], float(segment_seconds), abs_tol=1e-6):
             error('TIMING_SEGMENT_SECONDS', row=row, expected=segment_seconds)
         if bounds:
             cursor = bounds[1]
             segments.append({'id': str(values[0]).splitlines()[0], 'begin': bounds[0], 'end': bounds[1]})
-        if mode not in str(cell(values, 8)) or (mode == 'multi_shot' and 'single_shot' in str(cell(values, 8))):
+        if mode not in str(cell(values, settings_col)) or (mode == 'multi_shot' and 'single_shot' in str(cell(values, settings_col))):
             error('TIMING_ROUTE', row=row, expected=mode)
-        prompt = validate_prompt(str(cell(values, 2)), mode)
+        prompt = validate_prompt(str(cell(values, prompt_col)), mode)
         if prompt.get('total_seconds') is None or not math.isclose(prompt['total_seconds'], float(segment_seconds), abs_tol=1e-6):
             error('TIMING_PROMPT_SECONDS', row=row, expected=segment_seconds)
         if mode == 'multi_shot' and prompt.get('shots', 0) < 2:
             error('TIMING_ROUTE', row=row, message='Keep the internal shots inside one package')
     if not segments:
         error('TIMING_SEGMENTS_MISSING')
-    readings = tables.get('朗读测时')
+    if lean:
+        readings, units = read_evidence_rows(reading_evidence)
+    else:
+        readings = tables.get('朗读测时')
+        units = body(tables.get('原文与旁白', {}), {'发声单元'})
     if readings is None:
         error('READING_MISSING')
         return {'status': 'invalid', 'errors': errors, 'segments': len(segments)}
-    units = body(tables.get('原文与旁白', {}), {'发声单元'})
     silent = cell(readings.get(3, []), 0) == '朗读模式' and cell(readings.get(3, []), 1) == '无朗读文本'
     measured_count, measured_total, estimated_total, budget_total = 0, 0.0, 0.0, 0.0
     if silent:

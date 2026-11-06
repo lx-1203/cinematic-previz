@@ -115,10 +115,12 @@ def validate(text, mode='auto'):
 
 
 def validate_workbook(tables, mode='auto'):
-    from validate_excel_layout import ID_HEADERS, PROMPT_HEADERS
+    from validate_excel_layout import ID_HEADERS, PROMPT_HEADERS, TASKS
     errors, count = [], 0
-    rows = tables.get('逐镜脚本', {})
-    header = next((r for r, v in sorted(rows.items()) if v and v[0] in ID_HEADERS), None)
+    sheet = TASKS if TASKS in tables else '逐镜脚本'
+    rows = tables.get(sheet, {})
+    id_headers = {'包号与时间'} if sheet == TASKS else ID_HEADERS
+    header = next((r for r, v in sorted(rows.items()) if v and v[0] in id_headers), None)
     if header is None:
         return {'status': 'invalid', 'errors': [{'code': 'PROMPT_HEADER_MISSING'}], 'prompts': 0}
     columns = [i for i, title in enumerate(rows[header]) if title in PROMPT_HEADERS]
@@ -134,7 +136,7 @@ def validate_workbook(tables, mode='auto'):
             continue
         count += 1
         report = validate(values[column] if len(values) > column else '', mode)
-        errors.extend(dict(e, sheet='逐镜脚本', cell=f'{letters}{row}', shot_id=str(values[0]).splitlines()[0]) for e in report['errors'])
+        errors.extend(dict(e, sheet=sheet, cell=f'{letters}{row}', shot_id=str(values[0]).splitlines()[0]) for e in report['errors'])
     if count == 0:
         errors.append({'code': 'PROMPTS_EMPTY'})
     return {'status': 'invalid' if errors else 'valid', 'errors': errors, 'prompts': count, 'scope': 'Saved prompt body structure and timeline only; manual semantic and readiness checks remain required.'}

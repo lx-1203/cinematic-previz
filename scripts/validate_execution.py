@@ -1,6 +1,7 @@
 """Read-only checks of declared execution links and local file hashes, never visual approval."""
 import argparse
 import hashlib
+import io
 import json
 from pathlib import Path
 import re
@@ -205,11 +206,67 @@ class Check:
             self.artifact(review.get('evidence'), path + '.execution.review.evidence')
 
 
+def check_video_prompt(check, data):
+    """Compare one saved platform draft with its approved workbook source."""
+    from validate_excel_layout import (Formula, ID_HEADERS, PROMPT_HEADERS, TASKS,
+                                       TASK_HEADERS, identifier, read_xlsx, task_rows)
+    from validate_production_timing import body, cell
+    import xml.etree.ElementTree as ET
+    import zipfile
+
+    package = check.text(data.get('package_id'), 'package_id')
+    approval = check.obj(data.get('approval'), 'approval')
+    approved = approval.get('package_ids')
+    if (not package or not isinstance(approved, list) or package not in approved
+            or not check.text(approval.get('evidence'), 'approval.evidence')):
+        check.issue('PROMPT_NOT_APPROVED', 'approval', 'Record actual approval covering this package and workbook version')
+        return
+    workbook = check.obj(approval.get('workbook'), 'approval.workbook')
+    name = check.text(workbook.get('file'), 'approval.workbook.file')
+    expected = check.sha(workbook.get('sha256'), 'approval.workbook.sha256')
+    if check.errors:
+        return
+    try:
+        raw = (check.root / name).read_bytes()
+        if hashlib.sha256(raw).hexdigest() != expected:
+            check.issue('PROMPT_SOURCE_STALE', 'approval.workbook', 'Workbook differs from the approved version')
+            return
+        tables = read_xlsx(io.BytesIO(raw), preserve_formulas=True)
+    except (OSError, ValueError, IndexError, KeyError, ET.ParseError, zipfile.BadZipFile):
+        check.issue('PROMPT_SOURCE_UNREADABLE', 'approval.workbook', 'Cannot read the approved workbook')
+        return
+    if TASKS in tables:
+        header = next((v for _, v in sorted(tables[TASKS].items()) if v and v[0] == TASK_HEADERS[0]), [])
+        rows, column = (task_rows(tables) if header == TASK_HEADERS else []), 4
+    else:
+        legacy = tables.get('逐镜脚本', {})
+        header = next((v for _, v in sorted(legacy.items()) if v and v[0] in ID_HEADERS), [])
+        columns = [i for i, title in enumerate(header) if title in PROMPT_HEADERS]
+        rows = body(legacy, ID_HEADERS) if len(columns) == 1 else []
+        column = columns[0] if rows else 0
+    matches = [cell(values, column) for _, values in rows if identifier(values[0]) == package]
+    if len(matches) != 1 or not matches[0].strip() or isinstance(matches[0], Formula):
+        check.issue('PROMPT_SOURCE_MISSING', 'approval.workbook', 'Require exactly one complete source cell for this package')
+        return
+    node = check.text(data.get('target_node_id'), 'target_node_id')
+    saved = check.obj(data.get('readback'), 'readback')
+    if not node or saved.get('node_id') != node or saved.get('complete') is not True or not isinstance(saved.get('text'), str):
+        check.issue('PROMPT_READBACK_UNAVAILABLE', 'readback', 'Require complete saved text from the target platform node')
+    elif saved['text'] != matches[0]:
+        check.issue('PROMPT_READBACK_MISMATCH', 'readback.text', 'Pause this package and compare against the approved source')
+
+
 def validate(data, *, stage='first_frame', base_dir=None):
     check = Check(base_dir)
     data = check.obj(data, '$')
     if type(data.get('schema_version')) is not int or data.get('schema_version') != 1:
         check.issue('SCHEMA', 'schema_version', 'Supported schema_version is integer 1')
+    if stage == 'video_prompt':
+        if not check.errors:
+            check_video_prompt(check, data)
+        return {'status': 'blocked' if check.errors else 'matched', 'errors': check.errors,
+                'authorizes_submission': False,
+                'evidence_scope': 'Local approved workbook and declared platform readback; no live observation'}
     check.rows(data.get('shots'), 'shots', nonempty=True)
     shots = check.unique(data.get('shots'), 'shots', ('shot_id',))
     if stage == 'first_frame':
@@ -224,7 +281,7 @@ def validate(data, *, stage='first_frame', base_dir=None):
     elif stage == 'delivery':
         check.delivery(data, shots)
     else:
-        check.issue('SCHEMA', 'stage', 'Use first_frame or delivery')
+        check.issue('SCHEMA', 'stage', 'Use first_frame, video_prompt or delivery')
     return {'status': 'needs_revision' if check.errors else 'needs_visual_review',
             'automatic_checks': 'failed' if check.errors else 'passed', 'errors': check.errors,
             'authorizes_submission': False, 'visual_review': 'not_run',
@@ -234,7 +291,7 @@ def validate(data, *, stage='first_frame', base_dir=None):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('package', type=Path)
-    parser.add_argument('--stage', required=True, choices=('first_frame', 'delivery'))
+    parser.add_argument('--stage', required=True, choices=('first_frame', 'video_prompt', 'delivery'))
     args = parser.parse_args()
     try:
         data = json.loads(args.package.read_text(encoding='utf-8-sig'))

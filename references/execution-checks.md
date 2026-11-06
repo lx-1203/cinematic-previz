@@ -7,7 +7,7 @@ python "<skill-dir>/scripts/validate_execution.py" first-frame-check.json --stag
 python "<skill-dir>/scripts/validate_execution.py" delivery-check.json --stage delivery
 ```
 
-两个阶段均要求 `schema_version=1` 和非空 `shots` 数组。文件路径相对校验JSON所在目录，或为本地绝对路径；Python调用可用 `validate(data, stage="first_frame", base_dir=project_dir)`。只读本地文件，不联网、不改词、不生成素材；远端素材先通过已授权下载取得本地同版文件，否则此项保持未验证。
+first_frame和delivery均要求 `schema_version=1` 和非空 `shots` 数组。文件路径相对校验JSON所在目录，或为本地绝对路径；Python调用可用 `validate(data, stage="first_frame", base_dir=project_dir)`。只读本地文件，不联网、不改词、不生成素材；远端素材先通过已授权下载取得本地同版文件，否则此项保持未验证。
 
 所有文件对象均有 `file`（非空真实文件）及 `sha256`（64位十六进制），脚本重新读取文件计算SHA256。哈希只证明字节版本，不证明它是合格图片、真实提取帧、可播放视频或有效审查证据；实际查看/回放和来源核对继续执行。记录不能仅从本次计划复制成“已观察”。
 
@@ -51,6 +51,28 @@ continue镜头检查 `source_clip`、`frame_index`（0-based非负整数）、`t
 | 入画内容与读向 | 内容图核对结果，实际读者／展示对象、页顶底／装订、地图四向及至少两处非对称锚点在画面中的位置、输出指纹和实际看图结论 | 对镜头正立却让读者倒读；把水平镜像说成纸面180度旋转；只看一个地标或只验OCR；审图遗漏而写通过 |
 
 实际调用前核对资产齐全与职责；调用后核对真实附件并逐张审查像素。记录“缺资产／已生成待审／待修／审图通过／不可见未验证”，不机械补passed；对看不清的内容保留未验证。先修必要缺项，继续能独立推进的部分，沿用既有授权与有限重试，不让用户填写工程表格。
+
+## video_prompt提交前原词检查
+
+`python "<skill-dir>/scripts/validate_execution.py" "<prompt-check.json>" --stage video_prompt`
+
+复用已有审批证据与真实平台读回数据生成检查记录。字段如下：
+
+```json
+{
+  "schema_version": 1,
+  "package_id": "PK01",
+  "approval": {
+    "evidence": "实际审核消息或记录的可追溯入口",
+    "package_ids": ["PK01"],
+    "workbook": {"file": "分镜.xlsx", "sha256": "已审核文件的64位SHA256"}
+  },
+  "target_node_id": "真实目标节点ID",
+  "readback": {"node_id": "同一真实节点ID", "complete": true, "text": "平台实际保存的完整文本"}
+}
+```
+
+例中的值只描述字段用途。审核覆盖和读回完整性必须先有真实依据，不能把发出去的文本填作读回。检查会读已审同版工作簿并按包号比对权威文本。返回blocked时按[原词执行规则](prompts.md#视频提示词以已审核excel为唯一执行来源)暂停并说明原因；matched只说明提供的文本匹配，不证明用户授权、素材已绑定或平台已核验。
 
 ## delivery：当前转场设计到实际输出
 
