@@ -120,7 +120,7 @@ function createOperations(hub){
   }
   async function diagnose(tabId,signal){
     const state={mcpVersion:require('../package.json').version,protocol:1,...hub.status(),activeMutations:workspaces.activeWrites,claimedCanvases:workspaces.claimCount,issues:[]};
-    if(!state.browserConnected){state.issues.push({code:'BROWSER_NOT_CONNECTED',message:'浏览器未连接，请检查插件配对。'});return state;}
+    if(!state.browserConnected){state.issues.push({code:'BROWSER_NOT_CONNECTED',message:'Bridge 浏览器扩展未连接；Codex 内置浏览器的原生连接未检查。原生路线请使用宿主浏览器工具；仅在选择 Bridge 兼容路线时检查扩展加载、配对和标签页启用。'});return state;}
     if(typeof state.extensionVersion==='string'&&state.extensionVersion!==state.mcpVersion)state.issues.push({code:'BRIDGE_UPGRADE_REQUIRED',component:'extension',message:'浏览器扩展版本与本机服务不一致；请重新加载扩展并刷新 updream。'});
     if(tabId===undefined)return state;
     assertActive(signal);

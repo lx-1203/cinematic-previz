@@ -2,6 +2,10 @@
 
 此版本直接使用 MCP，不使用旧版网页节点助手面板。
 
+## 诊断范围
+
+本目录是独立 Edge/Chrome Bridge 兼容路线，和 `Codex-Updream/` 原生浏览器插件分开。`connection_status` / `diagnose` 的 `connectionRoute=legacy_bridge`、`nativeBrowserConnection=not_checked` 表示只检查扩展；`browserConnected=false` 不证明 Codex 原生网页断开。旧版服务可能没有这两个范围字段，但检测范围相同。不要把两个组件不同的版本号当作错配。原生路线请使用当前聊天的宿主浏览器工具，不为此安装或配对扩展，也不重启其他聊天使用的服务。
+
 ## 首次调用
 
 1. `updream_connection_status {}`：检查浏览器是否已连接。

@@ -39,7 +39,7 @@ async function connectReadOnly(){
 }
 
 async function runDiagnose({connect=connectReadOnly,now=()=>performance.now()}={}){
-  const start=now(),report={status:'error',serviceAvailable:false,browserConnected:false};let client;
+  const start=now(),report={connectionRoute:'legacy_bridge',nativeBrowserConnection:'not_checked',status:'error',serviceAvailable:false,browserConnected:false};let client;
   const read=async name=>{
     const result=await client.callTool({name,arguments:{}},undefined,{timeout:10000});
     let value=result.structuredContent;
@@ -52,7 +52,10 @@ async function runDiagnose({connect=connectReadOnly,now=()=>performance.now()}={
     const diagnosis=await read('updream_diagnose');
     if(!diagnosis||typeof diagnosis.browserConnected!=='boolean')throw fail('INVALID_RESULT');
     Object.assign(report,{mcpVersion:versionOf(diagnosis.mcpVersion),extensionVersion:versionOf(diagnosis.extensionVersion),browserConnected:diagnosis.browserConnected,pendingRequests:diagnosis.pendingRequests??0,activeMutations:diagnosis.activeMutations??0,issues:(diagnosis.issues??[]).map(i=>({code:codeOf(i),...(i.component==='extension'||i.component==='page'?{component:i.component}:{})}))});
-    if(!report.browserConnected)report.status='browser_not_connected';
+    if(!report.browserConnected){
+      report.status='browser_not_connected';
+      report.guidance='Bridge 扩展未连接；Codex 内置浏览器的原生连接未检查。使用原生路线时通过宿主浏览器工具读取网页；仅在选择 Bridge 兼容路线时检查扩展加载、配对和标签页启用。';
+    }
     else{
       const results=await Promise.allSettled([read('updream_list_tabs'),read('updream_list_workspaces')]);
       const [tabs,workspaces]=results;

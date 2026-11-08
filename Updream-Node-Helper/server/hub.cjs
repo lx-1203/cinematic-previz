@@ -45,7 +45,7 @@ function createHub({token,timeoutMs=185000}){
     });
   }
   function request(payload){
-    if(!browser||browser.readyState!==1)return Promise.reject(failure('BROWSER_NOT_CONNECTED','浏览器插件未连接。请导入本机配对文件，并在插件中启用 updream 标签页。'));
+    if(!browser||browser.readyState!==1)return Promise.reject(failure('BROWSER_NOT_CONNECTED','Bridge 浏览器扩展未连接；这不表示 Codex 内置浏览器的原生路线断开。使用 Codex 原生路线时请通过宿主浏览器工具读取网页；只有选择 Bridge 兼容路线时才检查扩展加载、配对和标签页启用。'));
     if(pending.size>=64)return Promise.reject(failure('BUSY','本机桥接已有过多请求，请等待已发出的请求返回。'));
     const socket=browser,id=randomUUID();
     return new Promise((resolve,reject)=>{
@@ -58,6 +58,6 @@ function createHub({token,timeoutMs=185000}){
       });
     });
   }
-  return{attach,request,status:()=>({browserConnected:!!browser&&browser.readyState===1,pendingRequests:pending.size,extensionVersion}),close(){rejectAll();for(const s of sockets)s.terminate();}};
+  return{attach,request,status:()=>({connectionRoute:'legacy_bridge',nativeBrowserConnection:'not_checked',browserConnected:!!browser&&browser.readyState===1,pendingRequests:pending.size,extensionVersion}),close(){rejectAll();for(const s of sockets)s.terminate();}};
 }
 module.exports={createHub,equalSecret};
