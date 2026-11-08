@@ -634,6 +634,14 @@
       }
     },
     {
+      "id": "platform.layout",
+      "title": "Updream节点分区排版、范围保护与读回验收",
+      "parent": "platform.updream",
+      "source": {
+        "path": "references/updream-layout.md"
+      }
+    },
+    {
       "id": "platform.upload",
       "title": "素材上传与复用",
       "parent": "platform.updream",
