@@ -9,6 +9,6 @@
 - [x] 安装器发现已安装 Codex，输出可读阶段；通过官方命令注册 local marketplace、安装、列表读回，保留用户既有配置，不设置浏览器权限。
 - [x] 新增 ASCII/CRLF `install.bat`、离线包构建/验包和独立 Codex 发布工作流。复用已校验 Node，无第三方生产依赖。
 - [x] 用真实 Codex CLI 和隔离配置验证安装、版本、启用和重复安装。不能将 CLI测试称为浏览器实站测试。
-- [ ] Full 自检与 OCR委托、打包实际ZIP、桌面交付；同步 GitHub main 和独立发行标签，下载资产核验内容及来源。
+- [x] Full 自检与 OCR委托、打包实际ZIP、桌面交付；同步 GitHub main 和独立发行标签，下载资产核验内容及来源。
 
 验证命令：`node --test Codex-Updream/tests/*.test.cjs`；`python Codex-Updream/scripts/package-windows.py`；`python Codex-Updream/scripts/verify-package.py <zip> --codex-exe <official exe>`；`ocr delegate preview --format json`；`git ls-remote origin refs/heads/main`。
