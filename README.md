@@ -2,6 +2,12 @@
 
 作者：**星迹**。技术调用名：**cinematic-previz**。
 
+## Updream 浏览器插件：Windows 双击安装包
+
+独立 Bridge **0.3.1** 已恢复完整 0.3.0 源码线并新增离线安装体验。前往 [Windows 安装包发布页](https://github.com/lx-1203/cinematic-previz/releases/tag/updream-bridge-v0.3.1)，下载 Windows x64 ZIP，完整解压后双击 `install.bat`。包内自带 Node 与生产依赖；本机服务/Codex 注册自动完成，浏览器按中文引导确认加载一次，扩展随后自动配对，不必导入 JSON 文件。详见 [安装说明](Updream-Node-Helper/INSTALL.md) 和 [来源范围](Updream-Node-Helper/PROVENANCE.md)。
+
+此独立插件发布不等于历史 Bridge 0.4/0.6 源码恢复，也不改变下方技能 0.6.0 的内容版本。浏览器实站安装仍由使用者确认，安装器不会遥控桌面。
+
 按[十步制作流程](references/workflow.md#制作阶段与审核顺序)先交传统文档剧本供用户审核，通过后制作Excel多列分镜、人物/场景/表情/物品资产和逐镜首帧；含图Excel获审核后再上传、连接节点，视频提示词逐字取自表内，不私自现写。尾帧未要求不自主生成；最后用OpenCut剪辑、配置字幕并导出，字幕默认宋体、白字黑边。已有通过版本沿用，不重复重做；当前“仅草稿/不提交”等限制继续有效。
 
 ## 版本与更新记录
