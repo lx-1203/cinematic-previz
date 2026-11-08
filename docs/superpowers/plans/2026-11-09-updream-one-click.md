@@ -15,7 +15,7 @@
 - [x] 创建 ASCII/CRLF `install.bat` 和中文 `INSTALL.md`；安装器可通过 `--no-open --no-shortcut --install-dir <temp> --codex-home <temp> --port <free>` 隔离运行；不自动安装浏览器扩展或绕过原生确认。
 - [x] 新增 `scripts/package-windows.py`：下载固定版本 Node 并验证官方 SHA256、收集锁定生产依赖、生成逐文件清单、排除 `.local` 与任何私有配对，产生 ZIP/SHA256SUMS。新增 tag 发布工作流。
 - [x] 运行全部 node:test、脚本语法、真实 MCP/隔离安装/重复安装/ZIP 解压测试；跑 OCR 及人工交叉审查，修复确定缺陷；更新 README、版本、变更说明与维护状态。
-- [ ] 精确提交并非强推到现有 GitHub main，推独立标签；检查 Actions/Release，读回 commit、关键源文件和资产校验值，交付本地与 GitHub 下载链接。
+- [x] 精确提交并非强推到现有 GitHub main，推独立标签；检查 Actions/Release，读回 commit、关键源文件和资产校验值，交付本地与 GitHub 下载链接。
 
 ## 验证命令
 
