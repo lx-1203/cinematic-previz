@@ -152,3 +152,14 @@ checked 只支持 name/prompt。模型、比例、参考图用 update_node，再
 先通过 diagnose 及网页确认状态判断原请求是否还在处理；pendingRequests=0、页面 busy 为空都不能单独证明操作未执行。再核对本次目标的可观察结果：名称/完整 editDraft 与预期比较；生成使用已知 taskId、目标节点实际任务状态/历史与输出关联本次提交，记录当前进度及后续处理责任。
 
 只有能说明哪些步骤已生效、哪些仍需处理，并确认没有未处理的原站确认或仍在执行的原请求时，才确认释放。找不到任务、节点状态冲突或无法关联本次提交时，保留 uncertain，不传 acknowledgeUnknownOutcome=true，也不自动重试；向用户说明尚缺哪项证据。此检查不能给每次超时提供自动恢复保证。
+
+
+## Codex 原生优先路线（2026-11-09）
+
+用户明确偏好 Codex、不要 Edge/Chrome 扩展或不要桌面控制时，优先使用独立 `updream-codex` 原生插件。Windows 0.3.2 安装包通过官方 Codex CLI 自动注册 local marketplace、安装插件并读回 enabled/version，不要求开发人员模式、选择浏览器扩展目录或导入配对 JSON。
+
+GitHub 快装：`codex plugin marketplace add lx-1203/cinematic-previz`，随后 `codex plugin add updream-codex@xingji-updream`。用户已有安装授权时不反复确认同一步；本机安装由用户自行双击时，只交付包，不替用户操作桌面。
+
+运行时复用宿主公开的内置浏览器能力，优先发现当前页实际提供的 Site tools/WebMCP；没有合适工具时仅使用同一浏览器已公开的页面界面能力。原生插件不新增浏览器驱动或账户凭据，不能绕过宿主权限、注入私有接口、搬运 cookies 或偷偷改安全设置。插件安装完成、浏览器可用、页面可读、正确项目已验证和写入已读回是不同状态，必须分别报告。当前宿主预检曾在浏览器绑定/标签读取处超时，不能把插件安装测试称为实站连接验证。
+
+原有 Bridge MCP 路线继续用于用户明确选择的兼容场景；不要因为它未连接，就把 Edge 扩展安装当成 Codex 原生路线的前置条件。原生路线同样保留项目认领/交接、完整读回、网站确认和生成预算边界。独立 Codex 0.3.2 与 Bridge 0.3.1/历史 0.4/0.6 的来源和版本状态分开，不冒称历史源码恢复。

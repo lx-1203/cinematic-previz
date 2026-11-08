@@ -2,6 +2,17 @@
 
 作者：**星迹**。技术调用名：**cinematic-previz**。
 
+## 推荐：Updream for Codex 自动安装
+
+优先使用 Codex 时，下载 [Updream Codex 0.3.2 Windows 包](https://github.com/lx-1203/cinematic-previz/releases/tag/updream-codex-v0.3.2)，解压后双击 `install.bat`。安装器通过官方 Codex CLI 自动注册插件目录、安装并核对启用状态，无需 Edge 扩展文件夹选择或 JSON 配对。它复用 Codex 内置浏览器；正常登录、宿主权限及页面可用性仍需满足，安装成功不等于实站连接成功。详见 [Codex 安装说明](Codex-Updream/README.md)。
+
+已有 CLI 的 GitHub 快装命令：
+
+```text
+codex plugin marketplace add lx-1203/cinematic-previz
+codex plugin add updream-codex@xingji-updream
+```
+
 ## Updream 浏览器插件：Windows 双击安装包
 
 独立 Bridge **0.3.1** 已恢复完整 0.3.0 源码线并新增离线安装体验。前往 [Windows 安装包发布页](https://github.com/lx-1203/cinematic-previz/releases/tag/updream-bridge-v0.3.1)，下载 Windows x64 ZIP，完整解压后双击 `install.bat`。包内自带 Node 与生产依赖；本机服务/Codex 注册自动完成，浏览器按中文引导确认加载一次，扩展随后自动配对，不必导入 JSON 文件。详见 [安装说明](Updream-Node-Helper/INSTALL.md) 和 [来源范围](Updream-Node-Helper/PROVENANCE.md)。
