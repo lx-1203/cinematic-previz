@@ -15,6 +15,7 @@ GUIDANCE_HEADERS = ['叙事任务与动作表演', '景别机位与构图', '完
 LEGACY_HEADERS = {'任务与情绪节拍', '景别、机位与镜头', '起幅→落幅构图与空间', '动作与表演', '运镜、焦点与节奏', '台词与声音', '必要分镜设计'}
 ID_HEADERS = {'镜号与时间', '镜号／时间', '镜号/时间'}
 PROMPT_HEADERS = {'当前完整视频规划词', '当前完整视频提示词', '当前完整视频词'}
+FRAME_HEADER = '首帧与切镜参考'
 NS = {'s': 'http://schemas.openxmlformats.org/spreadsheetml/2006/main'}
 
 
@@ -70,8 +71,11 @@ def validate(tables):
         if len(set(shots[name])) != len(shots[name]):
             errors.append({'code': 'SHOT_DUPLICATE', 'sheet': name})
         if name == '逐镜脚本':
-            normalized = ['镜号与时间' if h in ID_HEADERS else '当前完整视频规划词' if h in PROMPT_HEADERS else h for h in headers[name] if h]
-            expected = ['镜号与时间', '场次与人物阶段', '当前完整视频规划词', '首帧', '人物参考', '场景参考', '表情参考', '物品参考', '生成设置与状态', '审阅意见']
+            header_aliases = dict.fromkeys(ID_HEADERS, '镜号与时间')
+            header_aliases.update(dict.fromkeys(PROMPT_HEADERS, '当前完整视频规划词'))
+            header_aliases['首帧'] = FRAME_HEADER
+            normalized = [header_aliases.get(h, h) for h in headers[name] if h]
+            expected = ['镜号与时间', '场次与人物阶段', '当前完整视频规划词', FRAME_HEADER, '人物参考', '场景参考', '表情参考', '物品参考', '生成设置与状态', '审阅意见']
             if normalized != expected:
                 errors.append({'code': 'MAIN_HEADERS', 'expected': expected})
             forbidden = set(GUIDANCE_HEADERS) | LEGACY_HEADERS

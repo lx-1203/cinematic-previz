@@ -19,6 +19,13 @@ class ExcelLayoutTests(unittest.TestCase):
     def test_split_layout_is_valid(self):
         self.assertEqual(self.codes(), set())
 
+    def test_frame_and_cut_reference_header_uses_existing_column(self):
+        headers = self.tables['逐镜脚本'][5]
+        headers[3] = '首帧与切镜参考'
+        self.assertEqual(self.codes(), set())
+        headers.insert(4, '首帧')
+        self.assertIn('MAIN_HEADERS', self.codes())
+
     def test_guidance_columns_in_main_are_rejected_even_when_hidden(self):
         self.tables['逐镜脚本'][5].extend(layout.GUIDANCE_HEADERS)
         self.assertIn('MAIN_GUIDANCE_COLUMNS', self.codes())
