@@ -126,4 +126,66 @@ class LayoutTests(unittest.TestCase):
         self.assertIn('layer_order:A', layout.check(moved(snap, plan), spec, plan)['errors'])
 
 
+    def test_unavailable_character_assets_are_separate_from_verified_layout(self):
+        snap, spec = fixture()
+        linked = dict(character='lead', video_node_id=10, asset_node_id=2)
+        missing = dict(character='support', video_node_id=10, asset_node_id=None,
+                       missing_reason='No approved identity asset')
+        spec['character_requirements'] = [linked, missing]
+        plan = layout.make_plan(snap, spec)
+        result = layout.check(moved(snap, plan), spec, plan)
+
+        self.assertEqual(result['status'], 'structure_verified_visual_pending')
+        self.assertEqual(result['errors'], [])
+        self.assertEqual(result.get('character_coverage'), dict(
+            status='pending_assets', linked=[linked], missing_assets=[missing], missing_links=[]))
+
+    def test_character_asset_requires_a_true_reference_edge(self):
+        snap, spec = fixture()
+        required = dict(character='support', video_node_id=10, asset_node_id=3)
+        spec['character_requirements'] = [required]
+        plan = layout.make_plan(snap, spec)
+        actual = moved(snap, plan)
+        actual['connections'] += [dict(fromNodeId=3, toNodeId=10, isReference=False),
+                                  dict(fromNodeId=3, toNodeId=11, isReference=True)]
+
+        result = layout.check(actual, spec, plan)
+        self.assertEqual(result['status'], 'failed')
+        self.assertEqual(result.get('character_coverage'), dict(
+            status='missing_links', linked=[], missing_assets=[], missing_links=[required]))
+
+        actual['connections'][-2]['isReference'] = True
+        result = layout.check(actual, spec, plan)
+        self.assertEqual(result['character_coverage']['status'], 'verified')
+        self.assertEqual(result['character_coverage']['linked'], [required])
+
+    def test_unsupported_character_matrix_entries_are_rejected(self):
+        for bad in (dict(character=' ', video_node_id=10, asset_node_id=2),
+                    dict(character='support', video_node_id=99, asset_node_id=2),
+                    dict(character='support', video_node_id=10, asset_node_id=4),
+                    dict(character='support', video_node_id=10, asset_node_id=None),
+                    dict(character='support', video_node_id=10)):
+            with self.subTest(requirement=bad):
+                snap, spec = fixture()
+                spec['character_requirements'] = [bad]
+                with self.assertRaises(ValueError):
+                    layout.make_plan(snap, spec)
+
+        snap, spec = fixture()
+        spec['character_requirements'] = [dict(character='support', video_node_id=10, asset_node_id=i)
+                                          for i in (2, 3)]
+        with self.assertRaises(ValueError):
+            layout.make_plan(snap, spec)
+
+    def test_empty_or_undeclared_character_matrix(self):
+        snap, spec = fixture()
+        plan = layout.make_plan(snap, spec)
+        self.assertNotIn('character_coverage', layout.check(moved(snap, plan), spec, plan))
+
+        spec['character_requirements'] = []
+        plan = layout.make_plan(snap, spec)
+        self.assertEqual(layout.check(moved(snap, plan), spec, plan).get('character_coverage'), dict(
+            status='no_requirements', linked=[], missing_assets=[], missing_links=[]))
+
+
 if __name__ == '__main__': unittest.main()

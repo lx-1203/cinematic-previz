@@ -47,6 +47,32 @@ def snapshot(value):
     return value, result
 
 
+def validate_character_requirements(requirements, nodes, roles):
+    if not isinstance(requirements, list):
+        raise ValueError('character_requirements must be a list')
+    seen = set()
+    for requirement in requirements:
+        if not isinstance(requirement, dict) or 'asset_node_id' not in requirement:
+            raise ValueError('character requirement must declare asset_node_id')
+        character = requirement.get('character')
+        video = requirement.get('video_node_id')
+        asset = requirement['asset_node_id']
+        if not isinstance(character, str) or not character.strip():
+            raise ValueError('character name or phase required')
+        if type(video) is not int or roles.get(video) != 'video_ids':
+            raise ValueError('character video_node_id must be a scoped video')
+        key = (character.strip(), video)
+        if key in seen:
+            raise ValueError('duplicate character requirement for video')
+        seen.add(key)
+        if asset is None:
+            reason = requirement.get('missing_reason')
+            if not isinstance(reason, str) or not reason.strip():
+                raise ValueError('missing_reason required for an unavailable character asset')
+        elif type(asset) is not int or roles.get(asset) != 'asset_ids' or nodes[asset]['type'] != 'image':
+            raise ValueError('character asset_node_id must be a scoped image')
+
+
 def inputs(raw, spec):
     snap, nodes = snapshot(raw)
     if not spec.get('projectId') or str(snap.get('projectId')) != str(spec['projectId']):
@@ -76,6 +102,8 @@ def inputs(raw, spec):
     for pair in spec.get('expected_reference_pairs', []):
         if any(type(pair.get(k)) is not int or pair[k] not in nodes for k in ('fromNodeId', 'toNodeId')):
             raise ValueError('reference endpoints must exist')
+    if 'character_requirements' in spec:
+        validate_character_requirements(spec['character_requirements'], nodes, roles)
     return snap, nodes, roles
 
 
@@ -120,6 +148,28 @@ def make_plan(raw, spec, columns=5, gap=80, title_gap=40, zone_gap=160):
     return dict(projectId=spec['projectId'], spec_sha256=digest(spec), settings=settings,
                 moves=moves, bands=bands, baseline=copy.deepcopy(snap),
                 status='plan_only_not_applied')
+
+
+def character_coverage(requirements, edges):
+    linked, missing_assets, missing_links = [], [], []
+    for requirement in requirements:
+        asset = requirement['asset_node_id']
+        video = requirement['video_node_id']
+        if asset is None:
+            missing_assets.append(requirement)
+        elif (asset, video, True) in edges:
+            linked.append(requirement)
+        else:
+            missing_links.append(requirement)
+    if missing_links:
+        status = 'missing_links'
+    elif missing_assets:
+        status = 'pending_assets'
+    elif linked:
+        status = 'verified'
+    else:
+        status = 'no_requirements'
+    return dict(status=status, linked=linked, missing_assets=missing_assets, missing_links=missing_links)
 
 
 def check(raw, spec, plan):
@@ -191,9 +241,17 @@ def check(raw, spec, plan):
     new_edges = {(c['fromNodeId'], c['toNodeId'], c.get('isReference')) for c in actual.get('connections', [])}
     if not old_edges.issubset(new_edges):
         errors.append('original_connections_removed_or_changed')
-    return dict(status='failed' if errors else 'structure_verified_visual_pending', errors=errors,
-                moved_nodes=len(moves), expected_references=len(spec.get('expected_reference_pairs', [])),
-                visual_verified=False, generation_readiness_verified=False)
+    result = dict(errors=errors, moved_nodes=len(moves),
+                  expected_references=len(spec.get('expected_reference_pairs', [])),
+                  visual_verified=False, generation_readiness_verified=False)
+    if 'character_requirements' in spec:
+        coverage = character_coverage(spec['character_requirements'], new_edges)
+        result['character_coverage'] = coverage
+        for missing in coverage['missing_links']:
+            character = missing['character']
+            asset, video = missing['asset_node_id'], missing['video_node_id']
+            errors.append(f'missing_character_reference:{character}:{asset}->{video}')
+    return dict(status='failed' if errors else 'structure_verified_visual_pending', **result)
 
 
 def main():
@@ -208,7 +266,8 @@ def main():
         load = lambda p: json.loads(p.read_text(encoding='utf-8-sig'))
         result = make_plan(load(args.snapshot), load(args.spec)) if args.mode == 'plan' else check(load(args.snapshot), load(args.spec), load(args.plan))
         args.output.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding='utf-8')
-        print(json.dumps({k:v for k,v in result.items() if k in ('status', 'errors', 'moved_nodes')}, ensure_ascii=False))
+        summary_fields = ('status', 'errors', 'moved_nodes', 'character_coverage')
+        print(json.dumps({k: v for k, v in result.items() if k in summary_fields}, ensure_ascii=False))
         return 1 if result.get('errors') else 0
     except (OSError, ValueError, KeyError, TypeError, AttributeError) as exc:
         print(json.dumps(dict(status='invalid_input', error=str(exc)), ensure_ascii=False))
